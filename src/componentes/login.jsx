@@ -24,11 +24,11 @@ const Ingreso = () => {
   };
 
   return (
-    <div className="d-flex justify-content-center mt-5">
-      <div className="card p-4 shadow" style={{ width: "320px" }}>
+    <div className="d-flex justify-content-center mt-5 pt-5">
+      <div className="card px-5 py-5 mx-auto shadow">
         <h3 className="mb-4 text-center">Iniciar Sesión</h3>
 
-        <form onSubmit={handleSubmit}>
+        <form className="mx-5" onSubmit={handleSubmit}>
           <div className="mb-3">
             <label htmlFor="email" className="form-label">Correo electrónico</label>
             <input

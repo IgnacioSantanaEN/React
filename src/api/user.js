@@ -4,7 +4,7 @@
 import axios from "axios";
 
 // ✅ URL base de autenticación (usa variable de entorno o directamente la URL)
-const AUTH_BASE = import.meta.env.VITE_XANO_AUTH_BASE || "https://x8ki-letl-twmt.n7.xano.io/api:SYZ4REjL/auth";
+const AUTH_BASE = import.meta.env.VITE_XANO_AUTH_BASE;
 
 // ✅ Helper para agregar el token JWT al header
 export const makeAuthHeader = (token) => ({
