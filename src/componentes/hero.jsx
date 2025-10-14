@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
-    <header className="container my-5">
+    <header className="container-fluid my-5 fixed-top">
       <div className="row p-5 rounded align-items-center">
         <div className="col-md-6">
           <h1 className="display-4">

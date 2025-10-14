@@ -30,10 +30,10 @@ const Signup = () => {
   };
 
   return (
-    <div>
-      <form className="w-50 mx-auto bg-secondary align-text" onSubmit={handleSubmit}>
+    <div className="mt-5 pt-5">
+      <form className="w-25 mx-auto align-text "  onSubmit={handleSubmit}>
 
-        <h2 className="mb-3 mt-5">Crear una cuenta</h2>
+        <h2 className="mb-3">Crear una cuenta</h2>
 
         <label htmlFor="name" className="form-label">
             Nombre de usuario
@@ -68,7 +68,7 @@ const Signup = () => {
         </label>
         <input 
             type="password" 
-            className="form-control mb-4" 
+            className="form-control mb-3" 
             id="password"
             name="password"
             placeholder="Ingresa tu contraseña"
@@ -83,7 +83,7 @@ const Signup = () => {
         <select
           id="role"
           name="role"
-          className="form-select mb-4"
+          className="form-select mb-5"
           value={formData.role}
           onChange={handleChange}
           required
@@ -93,7 +93,7 @@ const Signup = () => {
           <option value="admin">Administrador</option>
         </select>
 
-        <button type="submit" className="btn btn-primary w-100">
+        <button type="submit" className="btn btn-primary w-100 mb-5 pt-3">
           Registrarse
         </button>
         </form>
