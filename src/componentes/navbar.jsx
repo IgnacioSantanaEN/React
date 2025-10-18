@@ -1,8 +1,11 @@
 import React from "react";
-import logo from "/imagenes/Logo Tienda.jpg"; // Ajusta la ruta según tu carpeta
+import logo from "/imagenes/Logo Tienda.jpg";
+import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 
 const Navbar = () => {
+  const { user } = useAuth();
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary fixed-top py-0">
       <div className="container-fluid">
@@ -39,6 +42,12 @@ const Navbar = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/signup">Registro</Link>
             </li>
+
+            {user && (
+              <span className="navbar-text ms-3">
+                {user.name.capitalize()}
+              </span>
+            )}
           </ul>
         </div>
 

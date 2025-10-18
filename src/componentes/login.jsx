@@ -28,8 +28,8 @@ const Ingreso = () => {
       <div className="card px-5 py-5 mx-auto shadow">
         <h3 className="mb-4 text-center">Iniciar Sesión</h3>
 
-        <form className="mx-5" onSubmit={handleSubmit}>
-          <div className="mb-3">
+        <form className="mx-5 px-5" onSubmit={handleSubmit}>
+          <div className="mb-3 py-4">
             <label htmlFor="email" className="form-label">Correo electrónico</label>
             <input
               type="email"
@@ -42,7 +42,7 @@ const Ingreso = () => {
             />
           </div>
 
-          <div className="mb-3">
+          <div className="mb-3 py-5">
             <label htmlFor="password" className="form-label">Contraseña</label>
             <input
               type="password"

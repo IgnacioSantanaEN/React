@@ -93,7 +93,7 @@ const Signup = () => {
           <option value="admin">Administrador</option>
         </select>
 
-        <button type="submit" className="btn btn-primary w-100 mb-5 pt-3">
+        <button type="submit" className="btn btn-primary w-100 mb-5 pt-2">
           Registrarse
         </button>
         </form>
