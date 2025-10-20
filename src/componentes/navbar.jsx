@@ -21,8 +21,7 @@ const Navbar = () => {
           <span>The Holiday Shop</span>
         </Link>
 
-        {/* Menú de navegación entre vistas */}
-        <div className="collapse navbar-collapse fs-4">
+        <div className="collapse navbar-collapse fs-3">
           <ul className="navbar-nav mb-2 mb-lg-0 ms-auto">
             <li className="nav-item">
               <Link className="nav-link" to="/home">Home</Link>

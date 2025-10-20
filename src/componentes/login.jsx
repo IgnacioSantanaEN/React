@@ -24,12 +24,12 @@ const Ingreso = () => {
   };
 
   return (
-    <div className="d-flex justify-content-center my-5 py-5 body-background">
-      <div className="card px-4 mx-auto shadow">
-        <h3 className="mb-0 mt-5 text-center">Iniciar Sesión</h3>
+    <div className="d-flex justify-content-center mt-5 pt-5 body-background">
+      <div className="card my-0 shadow bg-light">
+        <h3 className="mt-5 text-center">Iniciar Sesión</h3>
 
-        <form className="me-4 ms-4 my-0 py-5" onSubmit={handleSubmit}>
-          <div className="mb-0 py-o">
+        <form className="mx-5 py-0 align-text" onSubmit={handleSubmit}>
+          <div className="py-3">
             <label htmlFor="email" className="form-label">Correo electrónico</label>
             <input
               type="email"
@@ -42,7 +42,7 @@ const Ingreso = () => {
             />
           </div>
 
-          <div className="mb-2 py-3">
+          <div className="py-3">
             <label htmlFor="password" className="form-label">Contraseña</label>
             <input
               type="password"

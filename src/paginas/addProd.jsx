@@ -1,9 +1,7 @@
 import AddProductForm from "../componentes/añadir";
 
-function añadirProducto() {
-  return (
-    <AddProductForm />
-    );
+function AñadirProducto() {
+  return <AddProductForm />
 }
 
-export default añadirProducto
+export default AñadirProducto
