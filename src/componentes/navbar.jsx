@@ -45,7 +45,7 @@ const Navbar = () => {
 
             {user && (
               <span className="navbar-text ms-3">
-                {user.name.capitalize()}
+                {user.name}
               </span>
             )}
           </ul>

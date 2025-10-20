@@ -1,5 +1,7 @@
 #root {
   text-align: center;
+  background-color: rgb(122, 122, 122);
+  z-index: -1;
 }
 
 .card {

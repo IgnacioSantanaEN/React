@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
-    <header className="container-fluid my-5 fixed-top">
-      <div className="row p-5 rounded align-items-center">
+    <header className="container-fluid py-5 my-5 bg-light">
+      <div className="row pb-5 rounded align-items-center">
         <div className="col-md-6">
           <h1 className="display-4">
             Bienvenido a <span className="text-primary">The Holiday Shop</span>
@@ -18,7 +18,6 @@ const Hero = () => {
           </Link>
         </div>
 
-        {/* Imagen a la derecha */}
         <div className="col-md-6 text-center">
           <img 
             src={HeroImage} 

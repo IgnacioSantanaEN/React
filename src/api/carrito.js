@@ -6,9 +6,9 @@ export const makeAuthHeader = (token) => ({
   Authorization: `Bearer ${token}`,
 });
 
-export async function getProductos() {
+export async function getCarrito() {
   try {
-    const { data } = await axios.get(`${BASE_DATOS}/product`, {
+    const { data } = await axios.get(`${BASE_DATOS}/cart`, {
       headers: { "Content-Type": "application/json" },
     });
     return data;
@@ -18,9 +18,9 @@ export async function getProductos() {
   }
 }
 
-export async function getProductoById(id) {
+export async function getCarritoById(id) {
   try {
-    const { data } = await axios.get(`${BASE_DATOS}/product/${id}`, {
+    const { data } = await axios.get(`${BASE_DATOS}/cart/${id}`, {
       headers: { "Content-Type": "application/json" },
     });
     return data;
@@ -30,10 +30,10 @@ export async function getProductoById(id) {
   }
 }
 
-export async function createProducto(producto, token) {
+export async function createCarrito(producto, token) {
   try {
     const { data } = await axios.post(
-        `${BASE_DATOS}/product`,
+        `${BASE_DATOS}/cart`,
         producto,
         { headers: { ...makeAuthHeader(token), "Content-Type": "application/json" } }
     );
@@ -44,10 +44,10 @@ export async function createProducto(producto, token) {
   }
 }
 
-export async function updateProducto(id, producto, token) {
+export async function updateCarrito(id, producto, token) {
     try {
         const { data } = await axios.put(
-            `${BASE_DATOS}/product/${id}`,
+            `${BASE_DATOS}/cart/${id}`,
             producto,
             { headers: { ...makeAuthHeader(token), "Content-Type": "application/json" } }
         );
@@ -58,10 +58,10 @@ export async function updateProducto(id, producto, token) {
     }
 }
 
-export async function deleteProducto(id, token) {
+export async function deleteCarrito(id, token) {
     try {
         const { data } = await axios.delete(
-            `${BASE_DATOS}/product/${id}`,
+            `${BASE_DATOS}/cart${id}`,
             { headers: makeAuthHeader(token) }
         );
         return data;
