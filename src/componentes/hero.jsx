@@ -4,25 +4,25 @@ import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
-    <header className="container-fluid py-5 my-5 bg-light">
-      <div className="row pb-5 rounded align-items-center">
-        <div className="col-md-6">
+    <header className="container-fluid p-5 my-5 body-background">
+      <div className="row pb-2 mt-3 rounded align-items-center bg-light">
+        <div className="col-md-6 my-5">
           <h1 className="display-4">
             Bienvenido a <span className="text-primary">The Holiday Shop</span>
           </h1>
           <p className="text-muted lead">
             Encuentra los mejores productos para cada festividad: Navidad, Halloween, Pascua y más.
           </p>
-          <Link to="/login" className="btn btn-primary btn-lg mt-3">
+          <Link to="/login" className="btn btn-primary btn-lg mt-0">
             Iniciar Sesión
           </Link>
         </div>
 
-        <div className="col-md-6 text-center">
+        <div className="col-md-6 text-center pt-2 mx-auto">
           <img 
-            src={HeroImage} 
+            src={HeroImage}
             alt="Imagen tienda" 
-            className="img-fluid w-100 rounded" 
+            className="w-100 rounded" 
           />
         </div>
 

@@ -16,13 +16,13 @@ const Navbar = () => {
             alt="Logo"
             width="60"
             height="60"
-            className="me-4"
+            className="me-3"
           />
           <span>The Holiday Shop</span>
         </Link>
 
         {/* Menú de navegación entre vistas */}
-        <div className="collapse navbar-collapse fs-3">
+        <div className="collapse navbar-collapse fs-4">
           <ul className="navbar-nav mb-2 mb-lg-0 ms-auto">
             <li className="nav-item">
               <Link className="nav-link" to="/home">Home</Link>
@@ -44,7 +44,7 @@ const Navbar = () => {
             </li>
 
             {user && (
-              <span className="navbar-text ms-3">
+              <span className="navbar-text ms-5">
                 {user.name}
               </span>
             )}

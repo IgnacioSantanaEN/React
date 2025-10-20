@@ -30,8 +30,8 @@ const Signup = () => {
   };
 
   return (
-    <div className="mt-5 pt-5">
-      <form className="w-25 mx-auto align-text "  onSubmit={handleSubmit}>
+    <div className="mt-5 pt-5 body-background">
+      <form className="w-25 mx-auto align-text"  onSubmit={handleSubmit}>
 
         <h2 className="mb-3">Crear una cuenta</h2>
 

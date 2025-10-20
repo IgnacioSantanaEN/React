@@ -24,11 +24,11 @@ const Ingreso = () => {
   };
 
   return (
-    <div className="d-flex justify-content-center my-5 py-5">
+    <div className="d-flex justify-content-center my-5 py-5 body-background">
       <div className="card px-4 mx-auto shadow">
-        <h3 className="mb-4 mt-5 text-center">Iniciar Sesión</h3>
+        <h3 className="mb-0 mt-5 text-center">Iniciar Sesión</h3>
 
-        <form className="me-4 ms-4 my-3 py-5" onSubmit={handleSubmit}>
+        <form className="me-4 ms-4 my-0 py-5" onSubmit={handleSubmit}>
           <div className="mb-0 py-o">
             <label htmlFor="email" className="form-label">Correo electrónico</label>
             <input
@@ -61,7 +61,6 @@ const Ingreso = () => {
         {authToken && user && (
           <div className="mt-1 p-3 bg-light border rounded">
             <strong>Token:</strong> {authToken} <br />
-            <strong>Rol:</strong> {user.role}
           </div>
         )}
       </div>
