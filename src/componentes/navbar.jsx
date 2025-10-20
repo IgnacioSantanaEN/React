@@ -42,6 +42,12 @@ const Navbar = () => {
               <Link className="nav-link" to="/signup">Registro</Link>
             </li>
 
+            {user?.role === "admin" && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/add">Añadir Producto</Link>
+              </li>
+            )}
+
             {user && (
               <span className="navbar-text ms-5">
                 {user.name}

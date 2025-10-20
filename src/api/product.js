@@ -6,7 +6,7 @@ export const makeAuthHeader = (token) => ({
   Authorization: `Bearer ${token}`,
 });
 
-export async function getProductos() {
+export async function getProducts() {
   try {
     const { data } = await axios.get(`${BASE_DATOS}/product`, {
       headers: { "Content-Type": "application/json" },
@@ -18,7 +18,7 @@ export async function getProductos() {
   }
 }
 
-export async function getProductoById(id) {
+export async function getProductById(id) {
   try {
     const { data } = await axios.get(`${BASE_DATOS}/product/${id}`, {
       headers: { "Content-Type": "application/json" },
@@ -30,12 +30,12 @@ export async function getProductoById(id) {
   }
 }
 
-export async function createProducto(producto, token) {
+export async function createProduct(producto, token) {
   try {
     const { data } = await axios.post(
         `${BASE_DATOS}/product`,
         producto,
-        { headers: { ...makeAuthHeader(token), "Content-Type": "application/json" } }
+        { headers: { ...makeAuthHeader(token), "Content-Type": "multipart/form-data" } }
     );
     return data;
   } catch (error) {
@@ -44,7 +44,7 @@ export async function createProducto(producto, token) {
   }
 }
 
-export async function updateProducto(id, producto, token) {
+export async function updateProduct(id, producto, token) {
     try {
         const { data } = await axios.put(
             `${BASE_DATOS}/product/${id}`,
@@ -58,7 +58,7 @@ export async function updateProducto(id, producto, token) {
     }
 }
 
-export async function deleteProducto(id, token) {
+export async function deleteProduct(id, token) {
     try {
         const { data } = await axios.delete(
             `${BASE_DATOS}/product/${id}`,

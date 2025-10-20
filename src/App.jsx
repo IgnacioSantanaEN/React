@@ -7,6 +7,7 @@ import Footer from './componentes/footer'
 import Registro from './paginas/signup'
 import Home from './paginas/home'
 import Inicio from './paginas/login'
+import AñadirProducto from './paginas/addProd'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -20,6 +21,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/signup" element={<Registro />} />
         <Route path="/login" element={<Inicio />} />
+        <Route path="/add" element={<AñadirProducto />} />
       </Routes>
       <Footer />
     </>

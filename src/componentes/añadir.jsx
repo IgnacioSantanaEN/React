@@ -24,8 +24,7 @@ const AddProductForm = () => {
     try {
       const data = await createProduct(formData);
       alert(`Producto "${data.name}" creado correctamente!`);
-      // Limpiar formulario
-      setFormData({ name: "", price: "", description: "", image: null });
+      setFormData({ name: "", description: "",price: "",stock_quantity: "",  image: null });
     } catch (error) {
       console.error(error);
       alert("Error al crear producto");
