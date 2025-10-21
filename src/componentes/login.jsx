@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 
 const Ingreso = () => {
   const { login, user, authToken } = useAuth();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: ""});
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -17,19 +17,21 @@ const Ingreso = () => {
       const data = await loginUser(formData);
       login(data.authToken, data.user);
       alert(`Bienvenido ${data.user.name}`);
+
     } catch (error) {
       console.error("Error:", error);
       alert("Email o contraseña incorrectos");
+      
     }
   };
 
   return (
     <div className="d-flex justify-content-center mt-5 pt-5 body-background">
-      <div className="card my-0 shadow bg-light">
-        <h3 className="mt-5 text-center">Iniciar Sesión</h3>
+      <div className="card mx-3 px-3 shadow bg-light">
+        <h3 className="mt-0 text-center">Iniciar Sesión</h3>
 
-        <form className="mx-5 py-0 align-text" onSubmit={handleSubmit}>
-          <div className="py-3">
+        <form className="mx-5 px-5 align-text" onSubmit={handleSubmit}>
+          <div className="py-1">
             <label htmlFor="email" className="form-label">Correo electrónico</label>
             <input
               type="email"
@@ -59,7 +61,7 @@ const Ingreso = () => {
         </form>
 
         {authToken && user && (
-          <div className="mt-1 p-3 bg-light border rounded">
+          <div className="mt-1 px-5 bg-light border rounded">
             <strong>Token:</strong> {authToken} <br />
           </div>
         )}

@@ -9,11 +9,15 @@ export const AuthProvider = ({ children }) => {
   const login = (token, userData) => {
     setAuthToken(token);
     setUser(userData);
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
     setAuthToken("");
     setUser(null);
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
   };
 
   return (

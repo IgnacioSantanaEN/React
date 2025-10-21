@@ -27,7 +27,7 @@ const Navbar = () => {
               <Link className="nav-link" to="/home">Home</Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="productos.html">Productos</a>
+              <Link className="nav-link" to="/productos">Productos</Link>
             </li>
             <li className="nav-item">
               <a className="nav-link" href="blogs.html">Blogs</a>
@@ -36,20 +36,14 @@ const Navbar = () => {
               <a className="nav-link" href="nosotros.html">Nosotros</a>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="contacto.html">Contacto</a>
+              <a className="nav-link" href="contacto">Contacto</a>
             </li>
             <li className="nav-item">
               <Link className="nav-link" to="/signup">Registro</Link>
             </li>
 
-            {user?.role === "admin" && (
-              <li className="nav-item">
-                <Link className="nav-link" to="/add">Añadir Producto</Link>
-              </li>
-            )}
-
             {user && (
-              <span className="navbar-text ms-5">
+              <span className="navbar-text ms-3">
                 {user.name}
               </span>
             )}
