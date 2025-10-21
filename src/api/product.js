@@ -35,7 +35,7 @@ export async function createProduct(producto, token) {
     const { data } = await axios.post(
         `${BASE_DATOS}/product`,
         producto,
-        { headers: { ...makeAuthHeader(token), "Content-Type": "multipart/form-data" } }
+        { headers: makeAuthHeader(token) }
     );
     return data;
   } catch (error) {

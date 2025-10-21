@@ -1,9 +1,23 @@
-import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
-import AñadirProducto from './addProd';
+import React, { useEffect, useState } from "react";
+import { getProducts } from "../api/product"; 
+import ProductoLista from "../componentes/listaProducto";
 
-function Productos() {
-    return <AñadirProducto />;
-}
+const ProductsPage = () => {
+  const [products, setProducts] = useState([]);
 
-export default Productos;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error al obtener productos:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  return <ProductoLista products={products} />;
+};
+
+export default ProductsPage;
