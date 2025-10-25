@@ -1,10 +1,8 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { createProduct } from "../api/product";
-import { AuthContext } from "../context/AuthContext";
+
 
 const AddProductForm = () => {
-  const { authToken } = useContext(AuthContext);
-
   const [formData, setFormData] = useState({
     name: "",
     description: "",

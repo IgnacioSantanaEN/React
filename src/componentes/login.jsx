@@ -61,7 +61,7 @@ const Ingreso = () => {
         </form>
 
         {authToken && user && (
-          <div className="mt-1 px-5 bg-light border rounded">
+          <div className="mt-3 px-5 bg-light border rounded center-text">
             <strong>Token:</strong> {authToken} <br />
           </div>
         )}
