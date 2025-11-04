@@ -1,15 +1,18 @@
 import React from "react";
 import { Link} from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const ProductoLista = ({ products }) => {
+  const { isAdmin } = useAuth();
   return (
     <div className="container mt-5 pt-5 body-background">
       <div className="d-flex justify-content-between align-items-center mt-5 mb-3">
         <h2>Productos</h2>
-        <Link
-          className="btn btn-success" to="/add">
-          + Añadir Producto
-        </Link>
+        {isAdmin && (
+          <Link className="btn btn-success" to="/add">
+            + Añadir Producto
+          </Link>
+        )}
       </div>
 
       {products.length === 0 ? (

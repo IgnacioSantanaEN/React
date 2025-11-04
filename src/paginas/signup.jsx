@@ -1,4 +1,5 @@
-import React, { useState }from 'react'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { registerUser } from '../api/user';
 
 const Signup = () => {
@@ -8,6 +9,8 @@ const Signup = () => {
     password: "",
     role: "",
   });
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -21,8 +24,11 @@ const Signup = () => {
 
     try {
       const response = await registerUser(formData);
-      alert("Usuario registrado correctamente");
+      setSuccess(true);
+      // Limpia el formulario para evitar re-envíos accidentales
       setFormData({ name: "", email: "", password: "", role: "" });
+      // OPCIONAL: Redirección automática después de 1.5s
+      // setTimeout(() => navigate('/login', { replace: true }), 1500);
     } catch (error) {
         console.error("Error:", error);
         alert("Error al registrar usuario la contraseña debe ser de 8 caracteres entre letras y numeros" );
@@ -31,9 +37,22 @@ const Signup = () => {
 
   return (
     <div className="mt-5 pt-5 body-background">
-      <form className="w-25 mx-auto align-text"  onSubmit={handleSubmit}>
+      <form className="w-25 mx-auto align-text" onSubmit={handleSubmit}>
 
         <h2 className="mb-3">Crear una cuenta</h2>
+
+        {success && (
+          <div className="alert alert-success d-flex justify-content-between align-items-center" role="alert">
+            <span>Usuario registrado correctamente.</span>
+            <button
+              type="button"
+              className="btn btn-sm btn-success"
+              onClick={() => navigate('/login')}
+            >
+              Ir a Iniciar sesión
+            </button>
+          </div>
+        )}
 
         <label htmlFor="name" className="form-label">
             Nombre de usuario

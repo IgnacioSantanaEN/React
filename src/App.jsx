@@ -6,6 +6,7 @@ import Home from './paginas/home'
 import Inicio from './paginas/login'
 import AñadirProducto from './paginas/addProd'
 import Productos from './paginas/productos'
+import RoleRoute from './routes/RoleRoute'
 
 function App() {
   return (
@@ -15,7 +16,14 @@ function App() {
           <Route index element={<Home />} />
           <Route path="signup" element={<Registro />} />
           <Route path="login" element={<Inicio />} />
-          <Route path="add" element={<AñadirProducto />} />
+          <Route
+            path="add"
+            element={
+              <RoleRoute roles={['admin']}>
+                <AñadirProducto />
+              </RoleRoute>
+            }
+          />
           <Route path="productos" element={<Productos />} />
         </Route>
       </Routes>

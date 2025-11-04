@@ -87,10 +87,10 @@ const Ingreso = () => {
   return (
     <div className="d-flex justify-content-center my-5 py-5 body-background">
       <div className="card mx-3 px-3 shadow bg-light">
-        <h3 className="mt-0 text-center">Iniciar Sesión</h3>
+        <h3 className="mt-0 text-center mt-3">Iniciar Sesión</h3>
 
-  <form className="mx-5 px-5 align-text" onSubmit={handleSubmit}>
-          <div className="py-0">
+  <form className="mx-5 px-5 pb-4 align-text" onSubmit={handleSubmit}>
+          <div className="py-3">
             <label htmlFor="email" className="form-label">Correo electrónico</label>
             <input
               type="email"
@@ -116,12 +116,12 @@ const Ingreso = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary w-100 mt-1">Iniciar Sesión</button>
+          <button type="submit" className="btn btn-primary w-100 mt-4">Iniciar Sesión</button>
         </form>
 
         {authToken && user && showToken && (
           <div
-            className="mt-3 px-4 py-2 bg-light border rounded text-break"
+            className="mb-4 px-4 py-0 bg-light border rounded text-break"
             style={{ maxHeight: "160px", overflowY: "auto" }}
           >
             <div className="d-flex justify-content-between align-items-start gap-3">
