@@ -12,6 +12,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Fondo general de la aplicación sin necesidad de un componente específico */
+body {
+  background-color: rgb(110, 108, 108);
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -43,13 +48,4 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-  }
-  a:hover {
-    color: #747bff;
-  }
 }
