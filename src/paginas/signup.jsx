@@ -36,8 +36,12 @@ const Signup = () => {
   };
 
   return (
-    <div className="mt-5 pt-5 body-background">
-      <form className="w-25 mx-auto align-text" onSubmit={handleSubmit}>
+    <div className="d-flex justify-content-center my-5 py-5 body-background">
+      <form
+        className="card shadow bg-light px-4 py-3 mx-3"
+        style={{ maxWidth: "640px", width: "100%" }}
+        onSubmit={handleSubmit}
+      >
 
         <h2 className="mb-3">Crear una cuenta</h2>
 
@@ -112,7 +116,7 @@ const Signup = () => {
           <option value="admin">Administrador</option>
         </select>
 
-        <button type="submit" className="btn btn-primary w-100 mb-5 pt-2">
+        <button type="submit" className="btn btn-success w-100 mb-5 pt-2">
           Registrarse
         </button>
         </form>

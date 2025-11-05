@@ -3,11 +3,11 @@ import { loginUser } from "../api/user";
 import { useAuth } from "../context/AuthContext";
 
 const Ingreso = () => {
-  const { login, user, authToken } = useAuth();
+  const { login, user, authToken} = useAuth();
   const [formData, setFormData] = useState({ email: "", password: ""});
   const [showToken, setShowToken] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [manualCopy, setManualCopy] = useState(false); // Fallback sin execCommand (deprecada)
+  const [manualCopy, setManualCopy] = useState(false);
   const hideTimerRef = useRef(null);
   const manualRef = useRef(null);
   const TOKEN_DISPLAY_MS = 15000;
@@ -116,7 +116,7 @@ const Ingreso = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary w-100 mt-4">Iniciar Sesión</button>
+          <button type="submit" className="btn btn-success w-100 mt-4">Iniciar Sesión</button>
         </form>
 
         {authToken && user && showToken && (

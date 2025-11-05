@@ -30,20 +30,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
   };
 
-  // Helpers de estado/rol para usar en UI y rutas
+  {/*Si usuario inicia sesion su authToken sera true*/}
   const isAuthenticated = !!authToken;
-  const getNormalizedRole = () => (user?.role ? String(user.role).toLowerCase().trim() : "");
-  const hasRole = (...roles) => {
-    const current = getNormalizedRole();
-    const normalizedTargets = roles.map(r => String(r).toLowerCase().trim());
-    return normalizedTargets.includes(current);
-  };
-  // Admitimos sinónimos comunes por si el backend usa otro idioma/etiqueta
-  const isAdmin = (() => {
-    const r = getNormalizedRole();
-    return r === "admin" || r === "administrator" || r === "administrador";
-  })();
 
+  {/*Verifica si el usuario tiene alguno de los roles especificados*/}
+  const hasRole = (...roles) => (user ? roles.includes(user.role) : false);
+
+  {/*Verifica si el usuario es admin*/}
+  const isAdmin = user?.role === "admin";
+
+  {/*Proveer el contexto de autenticación a los componentes hijos*/}
   return (
     <AuthContext.Provider value={{ authToken, user, login, logout, isAuthenticated, hasRole, isAdmin }}>
       {children}
