@@ -6,18 +6,19 @@ import ProductoLista from "../componentes/listaProducto";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const location = useLocation();
 
+  const fetchData = async () => {
+    try {
+      const data = await getProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error("Error al obtener productos:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await getProducts();
-        setProducts(data);
-      } catch (error) {
-        console.error("Error al obtener productos:", error);
-      }
-    };
     fetchData();
   }, []);
 
@@ -38,7 +39,7 @@ const ProductsPage = () => {
         </div>
       )}
 
-      <ProductoLista products={products} />
+      <ProductoLista products={products} onProductsChange={fetchData} />
     </div>
   );
 };
