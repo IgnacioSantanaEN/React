@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { createProduct } from "../api/product";
 import { useAuth } from "../context/AuthContext";
 
 
 const AddProductForm = () => {
   const { authToken } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -43,7 +45,6 @@ const AddProductForm = () => {
       }
 
       const data = await createProduct(dataToSend, authToken);
-      alert(`Producto "${data.name}" creado correctamente!`);
       setFormData({
         name: "",
         description: "",
@@ -51,6 +52,8 @@ const AddProductForm = () => {
         stock_quantity: "",
         image: null,
       });
+      // Redirigir a lista de productos con mensaje de éxito
+      navigate("/productos", { state: { created: true, name: data?.name } });
     } catch (error) {
       console.error(error);
       alert("Error al crear producto faltan campos");

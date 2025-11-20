@@ -6,7 +6,6 @@ const Ingreso = () => {
   const { login, user, authToken} = useAuth();
   const [formData, setFormData] = useState({ email: "", password: ""});
   const [showToken, setShowToken] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [manualCopy, setManualCopy] = useState(false);
   const hideTimerRef = useRef(null);
   const manualRef = useRef(null);
@@ -20,28 +19,13 @@ const Ingreso = () => {
 
   const handleCopyToken = async () => {
     if (!authToken) return;
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(authToken);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-        return;
-      }
-      // Si no hay clipboard API, activar modo copia manual
-      setManualCopy(true);
-      setTimeout(() => {
-        manualRef.current?.focus();
-        manualRef.current?.select();
-      }, 0);
-    } catch (e) {
-      // En error, ofrecer copia manual
-      console.error('No se pudo copiar con clipboard API:', e);
-      setManualCopy(true);
-      setTimeout(() => {
-        manualRef.current?.focus();
-        manualRef.current?.select();
-      }, 0);
-    }
+    // No copiar automáticamente al portapapeles por privacidad/UX.
+    // En su lugar, mostrar el campo para que el usuario copie manualmente si lo desea.
+    setManualCopy(true);
+    setTimeout(() => {
+      manualRef.current?.focus();
+      manualRef.current?.select();
+    }, 0);
   };
 
   const handleChange = (e) => {
@@ -53,6 +37,9 @@ const Ingreso = () => {
 
     try {
       const data = await loginUser(formData);
+
+      console.log("Respuesta login:", data);
+      
       login(data.authToken, data.user);
       alert(`Bienvenido ${data.user.name}`);
       setShowToken(true);
@@ -139,9 +126,7 @@ const Ingreso = () => {
                   >
                     Copiar
                   </button>
-                  {copied && (
-                    <span className="badge text-bg-success align-self-center">Copiado</span>
-                  )}
+                
                 </div>
                 {manualCopy && (
                   <div className="mt-2">
