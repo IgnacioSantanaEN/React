@@ -46,11 +46,11 @@ export async function createProduct(producto, token) {
 
 export async function updateProduct(id, producto, token) {
     try {
-        const { data } = await axios.put(
-            `${BASE_DATOS}/product/${id}`,
-            producto,
-            { headers: { ...makeAuthHeader(token), "Content-Type": "application/json" } }
-        );
+    const { data } = await axios.patch(
+      `${BASE_DATOS}/product/${id}`,
+      producto,
+      { headers: { ...makeAuthHeader(token), "Content-Type": "application/json" } }
+    );
         return data;
     } catch (error) {
         console.error("Error al actualizar producto:", error.response?.data || error.message);

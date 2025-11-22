@@ -1,4 +1,4 @@
-import AddProductForm from "../componentes/añadir";
+import AddProductForm from "../componentes/AddProduct";
 
 function AñadirProducto() {
   return <AddProductForm />
