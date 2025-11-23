@@ -14,33 +14,36 @@ const ProductoLista = ({ products }) => {
           </Link>
         )}
       </div>
-
-      {products.length === 0 ? (
-        <p className="text-muted text-center mt-4">
-          No hay productos registrados aún.
-        </p>
-      ) : (
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Descripción</th>
-              <th>Precio</th>
-              <th>Stock</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id}>
-                <td>{p.name}</td>
-                <td>{p.description}</td>
-                <td>${p.price}</td>
-                <td>{p.stock_quantity}</td>
+      {(() => {
+        const items = Array.isArray(products) ? products : [];
+        if (items.length === 0) {
+          return (
+            <p className="text-muted text-center mt-4">No hay productos registrados aún.</p>
+          );
+        }
+        return (
+          <table className="table table-striped">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Stock</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {items.map((p) => (
+                <tr key={p.id || p._id || JSON.stringify(p)}>
+                  <td>{p.name}</td>
+                  <td>{p.description}</td>
+                  <td>${p.price}</td>
+                  <td>{p.stock_quantity ?? p.stock}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+      })()}
     </div>
   );
 };
