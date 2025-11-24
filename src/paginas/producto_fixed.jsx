@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
 
@@ -12,6 +13,9 @@ const ProductPage = () => {
   const [mainIndex, setMainIndex] = useState(0);
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
+  const { hasRole } = useAuth();
+  const navigate = useNavigate();
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -158,7 +162,37 @@ const ProductPage = () => {
                     {adding ? 'Añadiendo...' : 'Añadir al carrito'}
                   </button>
 
-                  {/* El botón 'Comprar' fue retirado: usar /pago para finalizar la compra */}
+                  {hasRole && hasRole('admin') && (
+                    <button
+                      className="btn btn-danger"
+                      style={{ marginLeft: 8 }}
+                      disabled={deleting}
+                      onClick={async () => {
+                        const productId = product?.id || product?._id || id;
+                        if (!productId) return alert('ID de producto no disponible');
+                        if (!window.confirm(`¿Eliminar producto ${product?.name || productId}? Esta acción no se puede deshacer.`)) return;
+                        try {
+                          setDeleting(true);
+                          const resp = await axios.delete(`${API_BASE}/product/${productId}`);
+                          if (resp && (resp.status === 200 || resp.status === 204 || resp.status === 201)) {
+                            alert('Producto eliminado');
+                            navigate('/productos');
+                          } else {
+                            console.warn('Respuesta inesperada al eliminar producto:', resp?.status, resp?.data);
+                            alert('No se pudo eliminar el producto (respuesta inesperada)');
+                          }
+                        } catch (err) {
+                          console.error('Error eliminando producto:', err?.response?.data || err.message || err);
+                          alert('Error al eliminar el producto');
+                        } finally {
+                          setDeleting(false);
+                        }
+                      }}
+                    >
+                      {deleting ? 'Eliminando...' : 'Eliminar producto'}
+                    </button>
+                  )}
+
                 </div>
             </div>
           </div>
