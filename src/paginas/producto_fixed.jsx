@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 
 const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
 
 const ProductPage = () => {
   const { id } = useParams();
-  const { hasRole, isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,10 +29,6 @@ const ProductPage = () => {
     if (id) fetchProduct();
   }, [id]);
 
-  const handleBuy = () => {
-    alert(`Compra iniciada para el producto: ${product?.name || id}`);
-  };
-
   if (loading) return <div className="container mt-5">Cargando producto...</div>;
   if (error) return <div className="container mt-5 text-danger">{error}</div>;
   if (!product) return <div className="container mt-5">Producto no encontrado.</div>;
@@ -52,12 +45,17 @@ const ProductPage = () => {
           {mainImage ? (
             <div className="product-image-wrapper" onClick={() => images.length > 0 && setMainIndex((mi) => (mi + 1) % images.length)} style={{ cursor: 'pointer' }}>
               <img src={mainImage} alt={product.name} />
-              <div style={{ position: 'absolute', right: 8, bottom: 8, background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: 12, fontSize: 12 }}>
-                {mainIndex + 1} / {images.length}
-              </div>
             </div>
           ) : (
             <div className="product-image-wrapper">Sin imagen</div>
+          )}
+          {/* Indicador de posición de la imagen, mostrado centrado bajo la imagen */}
+          {images.length > 0 && (
+            <div style={{ textAlign: 'center', marginTop: 8 }}>
+              <span style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: 12, fontSize: 12 }}>
+                {mainIndex + 1} / {images.length}
+              </span>
+            </div>
           )}
         </div>
 
@@ -160,9 +158,7 @@ const ProductPage = () => {
                     {adding ? 'Añadiendo...' : 'Añadir al carrito'}
                   </button>
 
-                  <button className="btn btn-primary" onClick={handleBuy} disabled={!hasRole('cliente')}>
-                    {hasRole('cliente') ? 'Comprar' : 'Disponible solo para clientes'}
-                  </button>
+                  {/* El botón 'Comprar' fue retirado: usar /pago para finalizar la compra */}
                 </div>
             </div>
           </div>

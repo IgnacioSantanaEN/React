@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { registerUser } from '../api/user';
+import { useAuth } from '../context/AuthContext';
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -19,11 +20,18 @@ const Signup = () => {
     });
   };
 
+  const { isAdmin } = useAuth();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await registerUser(formData);
+      // Si quien registra NO es admin, forzamos rol 'cliente' aunque el form tenga otro valor
+      const payload = { ...formData };
+      if (!isAdmin) {
+        payload.role = 'cliente';
+      }
+      const response = await registerUser(payload);
       setSuccess(true);
       // Limpia el formulario para evitar re-envíos accidentales
       setFormData({ name: "", email: "", password: "", role: "" });
@@ -113,7 +121,7 @@ const Signup = () => {
         >
           <option value="">Selecciona un rol</option>
           <option value="cliente">Cliente</option>
-          <option value="admin">Administrador</option>
+          {isAdmin && <option value="admin">Administrador</option>}
         </select>
 
         <button type="submit" className="btn btn-success w-100 mb-5 pt-2">
