@@ -10,7 +10,17 @@ const ProductoLista = ({ products }) => {
   const { isAdmin, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [creatingCart, setCreatingCart] = useState(false);
+  const [query, setQuery] = useState('');
   const items = Array.isArray(products) ? products : [];
+  const q = (query || '').trim().toLowerCase();
+  const filtered = q
+    ? items.filter((p) => {
+        const name = String(p.name || p.title || '').toLowerCase();
+        const desc = String(p.description || p.desc || '').toLowerCase();
+        const price = String(p.price || p.unit_price || '').toLowerCase();
+        return name.includes(q) || desc.includes(q) || price.includes(q);
+      })
+    : items;
 
   return (
     <div className="container mt-5 pt-5 body-background">
@@ -66,11 +76,34 @@ const ProductoLista = ({ products }) => {
         </div>
       </div>
 
+      <div className="mb-3">
+        <div className="input-group">
+          <input
+            type="search"
+            className="form-control"
+            placeholder="Buscar por nombre, descripción o precio..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button
+            className="btn"
+            type="button"
+            onClick={() => setQuery('')}
+            aria-label="Limpiar búsqueda"
+            style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#ced4da' }}
+          >
+            Limpiar
+          </button>
+        </div>
+      </div>
+
       {items.length === 0 ? (
         <p className="text-muted text-center mt-4">No hay productos registrados aún.</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-muted text-center mt-4">No hay productos que coincidan con la búsqueda.</p>
       ) : (
         <div className="row">
-          {items.map((p) => (
+          {filtered.map((p) => (
             <div className="col-12 col-md-6 col-lg-4 mb-4" key={p.id || p._id || JSON.stringify(p)}>
               <ProductCard product={p} />
             </div>
