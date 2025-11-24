@@ -77,11 +77,8 @@ const PagoPage = () => {
     if (!window.confirm('Confirmar compra?')) return;
     try {
       setSaving(true);
-      // Depuración: mostrar header Authorization
-      console.log('Header Authorization:', axios.defaults.headers?.common?.Authorization);
       // El backend gestiona la eliminación de cart_detail y luego del cart
       const delResp = await axios.delete(`${API_BASE}/cart/${cartId}`);
-      console.log('Respuesta DELETE /cart/:', delResp);
       // Aceptar 200/204 como éxito; si la API devuelve otra estructura, mostrarla
       if (delResp && (delResp.status === 200 || delResp.status === 204 || delResp.status === 201)) {
         localStorage.removeItem('cartId');
@@ -138,18 +135,11 @@ const PagoPage = () => {
                 return (
                   <tr key={l.id}>
                     <td>{prod?.name || `ID: ${l.product}`}</td>
-                    <td>{price}</td>
+                    <td>{Math.round(price)}</td>
                     <td>
-                      <input
-                        type="number"
-                        min={1}
-                        value={qty}
-                        onChange={(e) => setLines((prev) => prev.map(x => x.id === l.id ? { ...x, quantity: e.target.value } : x))}
-                        onBlur={(e) => updateQty(l.id, Number(e.target.value))}
-                        style={{ width: 80 }}
-                      />
+                      <div style={{ width: 80 }}>{qty}</div>
                     </td>
-                    <td>{(price * qty).toFixed(2)}</td>
+                    <td style={{ background: '#f8f9fa' }}>{Math.round(price * qty)}</td>
                     <td>
                       <button className="btn btn-sm btn-danger" onClick={() => removeLine(l.id)}>Eliminar</button>
                     </td>
@@ -160,7 +150,9 @@ const PagoPage = () => {
           </table>
 
           <div className="d-flex justify-content-end align-items-center gap-3">
-            <h5>Total: {total.toFixed(2)}</h5>
+            <div className="p-3 rounded" style={{ background: '#0d6efd', color: '#fff', fontWeight: 600 }}>
+              Total: {Math.round(total)}
+            </div>
             <button className="btn btn-success" disabled={saving} onClick={handlePagar}>{saving ? 'Procesando...' : 'Pagar'}</button>
           </div>
         </>

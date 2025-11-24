@@ -288,28 +288,6 @@ const AddProductForm = () => {
             <strong>Estado:</strong> {status}
           </div>
 
-          <div className="mt-1">
-            {createdProduct && (
-              <div className="mb-2">
-                <strong>Producto creado:</strong>
-                <pre style={{ maxHeight: 120, overflow: 'auto' }}>{JSON.stringify(createdProduct, null, 2)}</pre>
-              </div>
-            )}
-
-            {uploadedImages && (
-              <div className="mb-2">
-                <strong>Imágenes subidas:</strong>
-                <pre style={{ maxHeight: 160, overflow: 'auto' }}>{JSON.stringify(uploadedImages, null, 2)}</pre>
-              </div>
-            )}
-
-            {result && (
-              <div className="mt-2">
-                <h5>Resultado</h5>
-                <pre style={{ maxHeight: 220, overflow: 'auto' }}>{JSON.stringify(result, null, 2)}</pre>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>

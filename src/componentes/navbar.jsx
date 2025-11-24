@@ -41,6 +41,11 @@ const Navbar = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/productos">Productos</Link>
             </li>
+            {isAdmin && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/usuarios">Usuarios</Link>
+              </li>
+            )}
             {typeof window !== 'undefined' && localStorage.getItem('cartId') && (
               <li className="nav-item">
                 <Link className="nav-link" to="/pago">Pagos</Link>

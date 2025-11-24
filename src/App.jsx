@@ -6,8 +6,10 @@ import Home from './paginas/home'
 import Inicio from './paginas/login'
 import AñadirProducto from './paginas/addProd'
 import Productos from './paginas/productos'
-import Producto from './paginas/producto'
+// Usar la versión corregida temporalmente para pruebas
+import Producto from './paginas/producto_fixed'
 import PagoPage from './paginas/pago'
+import Usuarios from './paginas/usuarios'
 import RoleRoute from './routes/RoleRoute'
 
 function App() {
@@ -29,6 +31,7 @@ function App() {
           <Route path="productos" element={<Productos />} />
           <Route path="producto/:id" element={<Producto />} />
           <Route path="pago" element={<PagoPage />} />
+          <Route path="usuarios" element={<Usuarios />} />
           {/* Ruta de usuarios eliminada */}
           {/* Ruta de usuario eliminada */}
         </Route>

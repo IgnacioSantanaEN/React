@@ -7,7 +7,7 @@ const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
 
 const ProductPage = () => {
   const { id } = useParams();
-  const { user, hasRole } = useAuth();
+  const { hasRole } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,7 +30,7 @@ const ProductPage = () => {
   }, [id]);
 
   const handleBuy = () => {
-    // Aquí iría la lógica real de compra (carrito, pago, etc.).
+    // Lógica de compra no implementada aquí; el botón se habilita solo para clientes.
     alert(`Compra iniciada para el producto: ${product?.name || id}`);
   };
 
@@ -38,7 +38,9 @@ const ProductPage = () => {
   if (error) return <div className="container mt-5 text-danger">{error}</div>;
   if (!product) return <div className="container mt-5">Producto no encontrado.</div>;
 
-  const images = Array.isArray(product.images) ? product.images.map((i) => (typeof i === 'string' ? i : i.url || i.path || i.file?.url)) : [];
+  const images = Array.isArray(product.images)
+    ? product.images.map((i) => (typeof i === 'string' ? i : i.url || i.path || i.file?.url))
+    : [];
   const mainImage = images[mainIndex] || null;
 
   return (
@@ -48,9 +50,15 @@ const ProductPage = () => {
       <div className="row">
         <div className="col-md-6">
           {mainImage ? (
-            <div className="product-image-wrapper" onClick={() => images.length > 0 && setMainIndex((mi) => (mi + 1) % images.length)} style={{ cursor: 'pointer' }}>
+            <div
+              className="product-image-wrapper"
+              onClick={() => images.length > 0 && setMainIndex((mi) => (mi + 1) % images.length)}
+              style={{ cursor: 'pointer' }}
+            >
               <img src={mainImage} alt={product.name} />
-              <div style={{ position: 'absolute', right: 8, bottom: 8, background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: 12, fontSize: 12 }}>
+              <div
+                style={{ position: 'absolute', right: 8, bottom: 8, background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: 12, fontSize: 12 }}
+              >
                 {mainIndex + 1} / {images.length}
               </div>
             </div>
@@ -83,7 +91,6 @@ const ProductPage = () => {
             </div>
 
             <div className="mt-3">
-              {/* Si el usuario tiene rol 'cliente' habilitar compra */}
               <button className="btn btn-primary" onClick={handleBuy} disabled={!hasRole('cliente')}>
                 {hasRole('cliente') ? 'Comprar' : 'Disponible solo para clientes'}
               </button>

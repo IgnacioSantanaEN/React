@@ -42,8 +42,6 @@ const ProductoLista = ({ products }) => {
                 // enviar user_id porque el backend ahora exige asignación al crear
                 const payload = { user_id: user?.id || user?._id || user?.uid };
                 const resp = await axios.post(`${API_BASE}/cart`, payload);
-                // log completo para depuración
-                console.log('Respuesta POST /cart:', resp);
                 const d = resp?.data;
                 // soportar varias formas de respuesta: { id }, { _id }, { cartId }, { data: { id } }, etc.
                 const cartId = d?.id || d?._id || d?.cartId || d?.data?.id || d?.data?._id || null;
