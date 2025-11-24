@@ -36,10 +36,10 @@ const Signup = () => {
   };
 
   return (
-    <div className="d-flex justify-content-center my-5 py-5 body-background">
+    <div className="d-flex justify-content-center pt-5 body-background">
       <form
         className="card shadow bg-light px-4 py-3 mx-3"
-        style={{ maxWidth: "640px", width: "100%" }}
+        style={{ maxWidth: "600px", width: "100%" }}
         onSubmit={handleSubmit}
       >
 

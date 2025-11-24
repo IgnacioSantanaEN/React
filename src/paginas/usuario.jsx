@@ -51,7 +51,8 @@ const Usuario = () => {
     try {
       await axios.delete(`${AUTH_BASE}/user/${id}`);
       setStatus('Usuario eliminado');
-      navigate('/usuarios');
+
+      navigate('/users');
     } catch (err) {
       console.error('Error deleting user', err);
       setStatus('Error al eliminar');
@@ -65,7 +66,7 @@ const Usuario = () => {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h3>Detalle Usuario</h3>
         <div>
-          <Link to="/usuarios" className="btn btn-secondary">Volver</Link>
+          <Link to="/users" className="btn btn-secondary">Volver</Link>
         </div>
       </div>
 

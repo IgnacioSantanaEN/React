@@ -41,28 +41,35 @@ const Navbar = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/productos">Productos</Link>
             </li>
-            
-            <li className="nav-item">
-              <Link className="nav-link" to="/signup">Registro</Link>
-            </li>
-
-            {isAdmin && (
+            {typeof window !== 'undefined' && localStorage.getItem('cartId') && (
               <li className="nav-item">
-                <Link className="nav-link" to="/usuarios">Usuarios</Link>
+                <Link className="nav-link" to="/pago">Pagos</Link>
+              </li>
+            )}
+            
+            {/* Mostrar 'Registro' solo si NO está autenticado */}
+            {!isAuthenticated && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/signup">Registro</Link>
               </li>
             )}
 
+            {/* Enlace de usuarios eliminado */}
+
             {isAuthenticated && (
-              <li className="nav-item d-flex align-items-center ms-3">
-                <span className="navbar-text me-2">{user?.name}</span>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-light"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button>
-              </li>
+              <>
+                <li className="nav-item d-flex align-items-center ms-3">
+                  <span className="navbar-text me-2">{user?.name}</span>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-light"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </li>
+                {/* No mostrar enlaces de pago en el navbar; la página /pago gestiona el flujo */}
+              </>
             )}
           </ul>
         </div>

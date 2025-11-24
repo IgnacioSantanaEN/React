@@ -1,6 +1,6 @@
 const Footer = () => {
   return (
-    <footer className="bg-primary text-white text-center p-2 fixed-bottom">
+    <footer className="bg-primary text-white text-center p-2">
       <p className="mb-0">&copy; 2025 The Holiday Shop - Todos los derechos reservados</p>
     </footer>
   );

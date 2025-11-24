@@ -87,7 +87,7 @@ const Ingreso = () => {
   return (
     <div className="d-flex justify-content-center my-5 py-5 body-background">
       <div className="card mx-3 px-3 shadow bg-light">
-        <h3 className="mt-0 text-center mt-3">Iniciar Sesión</h3>
+        <h3 className="mt-3 text-center mt-3">Iniciar Sesión</h3>
 
   <form className="mx-5 px-5 pb-4 align-text" onSubmit={handleSubmit}>
           <div className="py-3">
@@ -103,7 +103,7 @@ const Ingreso = () => {
             />
           </div>
 
-          <div className="py-0">
+          <div className="py-3">
             <label htmlFor="password" className="form-label">Contraseña</label>
             <input
               type="password"

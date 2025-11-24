@@ -7,8 +7,7 @@ import Inicio from './paginas/login'
 import AñadirProducto from './paginas/addProd'
 import Productos from './paginas/productos'
 import Producto from './paginas/producto'
-import Usuarios from './paginas/usuarios'
-import Usuario from './paginas/usuario'
+import PagoPage from './paginas/pago'
 import RoleRoute from './routes/RoleRoute'
 
 function App() {
@@ -29,22 +28,9 @@ function App() {
           />
           <Route path="productos" element={<Productos />} />
           <Route path="producto/:id" element={<Producto />} />
-          <Route
-            path="usuarios"
-            element={
-              <RoleRoute roles={["admin"]}>
-                <Usuarios />
-              </RoleRoute>
-            }
-          />
-          <Route
-            path="usuario/:id"
-            element={
-              <RoleRoute roles={["admin"]}>
-                <Usuario />
-              </RoleRoute>
-            }
-          />
+          <Route path="pago" element={<PagoPage />} />
+          {/* Ruta de usuarios eliminada */}
+          {/* Ruta de usuario eliminada */}
         </Route>
       </Routes>
     </>
