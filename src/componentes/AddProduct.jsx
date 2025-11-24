@@ -236,31 +236,26 @@ const AddProductForm = () => {
           <form onSubmit={(e) => e.preventDefault()}>
             <div className="row g-2">
 
-              
               <div className="col-12">
                 {/* 'Comentario: Nombre del producto (obligatorio)' */}
-                <small className="form-text text-muted mb-1">Nombre del producto (obligatorio)</small>
                 <label className="form-label">Nombre</label>
                 <input name="name" value={form.name} onChange={onChange} className="form-control" />
               </div>
 
               <div className="col-12">
                 {/* 'Comentario: Breve descripción para mostrar en la ficha del producto' */}
-                <small className="form-text text-muted mb-1">Breve descripción para mostrar en la ficha del producto</small>
                 <label className="form-label">Descripción</label>
                 <textarea name="description" value={form.description} onChange={onChange} className="form-control" />
               </div>
 
               <div className="col-md-4">
                 {/* 'Comentario: Precio en moneda local (sin símbolos)' */}
-                <small className="form-text text-muted mb-1">Precio en moneda local (sin símbolos)</small>
                 <label className="form-label">Precio</label>
                 <input type="number" name="price" value={form.price} onChange={onChange} className="form-control" />
               </div>
 
               <div className="col-md-4">
                 {/* 'Comentario: Cantidad disponible en inventario' */}
-                <small className="form-text text-muted mb-1">Cantidad disponible en inventario</small>
                 <label className="form-label">Stock</label>
                 <input type="number" name="stock" value={form.stock_quantity ?? form.stock} onChange={onChange} className="form-control" />
               </div>
@@ -270,11 +265,20 @@ const AddProductForm = () => {
                 <small className="form-text text-muted mb-1">Sube al menos 1 imagen (jpg, png). Tamaño recomendado ≤ 2MB</small>
                 <label className="form-label">Imágenes (múltiples)</label>
                 <input type="file" multiple accept="image/*" onChange={onFilesChange} className="form-control" />
+                <div className="form-text mt-1">Imágenes seleccionadas: {files ? files.length : 0}</div>
+                {(!files || files.length === 0) && (
+                  <div className="form-text text-danger">Debes subir al menos 1 imagen para habilitar &quot;Subir Producto&quot;</div>
+                )}
               </div>
             </div>
 
             <div className="mt-1 d-flex justify-content-end gap-2">
-              <button type="button" className="btn btn-success" disabled={loading || files.length === 0} onClick={handleAllInOne}>
+              <button
+                type="button"
+                className="btn btn-success"
+                disabled={loading || !files || files.length === 0}
+                onClick={handleAllInOne}
+              >
                 {loading ? 'Procesando...' : 'Subir Producto'}
               </button>
             </div>

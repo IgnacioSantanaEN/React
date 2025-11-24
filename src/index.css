@@ -49,3 +49,32 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+
+/* Product image utilities */
+.product-image-wrapper {
+  height: 420px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.product-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.product-thumb-wrapper {
+  height: 120px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #f8f9fa;
+}
+.product-thumb-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

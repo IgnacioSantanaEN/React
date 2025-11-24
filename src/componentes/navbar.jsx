@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -45,6 +45,12 @@ const Navbar = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/signup">Registro</Link>
             </li>
+
+            {isAdmin && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/usuarios">Usuarios</Link>
+              </li>
+            )}
 
             {isAuthenticated && (
               <li className="nav-item d-flex align-items-center ms-3">

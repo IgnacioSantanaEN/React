@@ -11,6 +11,7 @@ const ProductPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mainIndex, setMainIndex] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -38,6 +39,7 @@ const ProductPage = () => {
   if (!product) return <div className="container mt-5">Producto no encontrado.</div>;
 
   const images = Array.isArray(product.images) ? product.images.map((i) => (typeof i === 'string' ? i : i.url || i.path || i.file?.url)) : [];
+  const mainImage = images[mainIndex] || null;
 
   return (
     <div className="container mt-5">
@@ -45,24 +47,47 @@ const ProductPage = () => {
 
       <div className="row">
         <div className="col-md-6">
-          {images.length > 0 ? (
-            <img src={images[0]} alt={product.name} style={{ width: '100%', height: 420, objectFit: 'cover' }} />
+          {mainImage ? (
+            <div className="product-image-wrapper" onClick={() => images.length > 0 && setMainIndex((mi) => (mi + 1) % images.length)} style={{ cursor: 'pointer' }}>
+              <img src={mainImage} alt={product.name} />
+              <div style={{ position: 'absolute', right: 8, bottom: 8, background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: 12, fontSize: 12 }}>
+                {mainIndex + 1} / {images.length}
+              </div>
+            </div>
           ) : (
-            <div style={{ width: '100%', height: 420, background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Sin imagen</div>
+            <div className="product-image-wrapper">Sin imagen</div>
           )}
         </div>
 
         <div className="col-md-6">
-          <h2>{product.name}</h2>
-          <p className="text-muted">{product.description}</p>
-          <h4 className="mt-3">${product.price ?? 0}</h4>
-          <div className="mb-3">Stock: {product.stock_quantity ?? 0}</div>
+          <div className="p-3 rounded" style={{ background: '#e8f4ff' }}>
+            <div className="bg-white p-3 rounded shadow-sm mb-3">
+              <h2 className="mb-0">{product.name}</h2>
+            </div>
 
-          <div>
-            {/* Si el usuario tiene rol 'cliente' habilitar compra */}
-            <button className="btn btn-primary" onClick={handleBuy} disabled={!hasRole('cliente')}>
-              {hasRole('cliente') ? 'Comprar' : 'Disponible solo para clientes'}
-            </button>
+            <div className="bg-white p-3 rounded shadow-sm mb-3">
+              <label className="form-label mb-1" style={{ fontSize: 12, color: '#6c757d' }}>Descripción</label>
+              <div style={{ whiteSpace: 'pre-wrap' }}>{product.description}</div>
+            </div>
+
+            <div className="d-flex gap-2">
+              <div className="bg-white p-3 rounded shadow-sm flex-grow-1">
+                <label className="form-label mb-1" style={{ fontSize: 12, color: '#6c757d' }}>Precio</label>
+                <div style={{ fontWeight: 600 }}>${product.price ?? 0}</div>
+              </div>
+
+              <div className="bg-white p-3 rounded shadow-sm" style={{ minWidth: 120 }}>
+                <label className="form-label mb-1" style={{ fontSize: 12, color: '#6c757d' }}>Stock</label>
+                <div>{product.stock_quantity ?? 0}</div>
+              </div>
+            </div>
+
+            <div className="mt-3">
+              {/* Si el usuario tiene rol 'cliente' habilitar compra */}
+              <button className="btn btn-primary" onClick={handleBuy} disabled={!hasRole('cliente')}>
+                {hasRole('cliente') ? 'Comprar' : 'Disponible solo para clientes'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -24,9 +24,7 @@ const ProductoLista = ({ products }) => {
         <div className="row">
           {items.map((p) => (
             <div className="col-12 col-md-6 col-lg-4 mb-4" key={p.id || p._id || JSON.stringify(p)}>
-              <Link to={`/producto/${p.id || p._id || ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <ProductCard product={p} />
-              </Link>
+              <ProductCard product={p} />
             </div>
           ))}
         </div>
