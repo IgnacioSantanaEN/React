@@ -6,6 +6,7 @@ import Home from './paginas/home'
 import Inicio from './paginas/login'
 import AñadirProducto from './paginas/addProd'
 import Productos from './paginas/productos'
+import Producto from './paginas/producto'
 import RoleRoute from './routes/RoleRoute'
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             }
           />
           <Route path="productos" element={<Productos />} />
+          <Route path="producto/:id" element={<Producto />} />
         </Route>
       </Routes>
     </>

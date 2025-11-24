@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getProducts } from "../api/product"; 
+import axios from "axios";
 import ProductoLista from "../componentes/listaProducto";
+
+const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -8,8 +10,8 @@ const ProductsPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getProducts();
-        setProducts(data);
+        const res = await axios.get(`${API_BASE}/product`);
+        setProducts(res.data || []);
       } catch (error) {
         console.error("Error al obtener productos:", error);
       }

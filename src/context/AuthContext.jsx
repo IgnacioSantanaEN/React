@@ -1,11 +1,17 @@
 import { createContext, useState, useContext } from "react";
+import axios from 'axios';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   // Rehidratar desde localStorage al cargar la app
   const [authToken, setAuthToken] = useState(() => {
-    return localStorage.getItem("authToken") || null;
+    const t = localStorage.getItem("authToken") || null;
+    if (t) {
+      // configurar axios para enviar el header Authorization por defecto
+      axios.defaults.headers.common['Authorization'] = `Bearer ${t}`;
+    }
+    return t;
   });
   const [user, setUser] = useState(() => {
     const raw = localStorage.getItem("user");
@@ -21,6 +27,8 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     localStorage.setItem("authToken", token);
     localStorage.setItem("user", JSON.stringify(userData));
+    // establecer header por defecto para todas las solicitudes axios
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   };
 
   const logout = () => {
@@ -28,6 +36,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
+    // quitar header por defecto
+    delete axios.defaults.headers.common['Authorization'];
   };
 
   {/*Si usuario inicia sesion su authToken sera true*/}
