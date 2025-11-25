@@ -13,7 +13,7 @@ const ProductPage = () => {
   const [mainIndex, setMainIndex] = useState(0);
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
-  const { hasRole } = useAuth();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
 
@@ -108,12 +108,24 @@ const ProductPage = () => {
 
                       try {
                         setAdding(true);
-                        // Obtener cartId existente
+                        // Obtener cartId existente y verificar que sea ACTIVO
                         let cartId = typeof window !== 'undefined' ? localStorage.getItem('cartId') : null;
-                        if (!cartId) {
-                          // crear carrito público para pruebas (backend determina el usuario activo)
+                        if (cartId) {
                           try {
-                            const resp = await axios.post(`${API_BASE}/cart`, {});
+                            const chk = await axios.get(`${API_BASE}/cart/${cartId}`);
+                            const cartObj = chk?.data?.data ?? chk?.data ?? null;
+                            if (!cartObj || (cartObj.status && cartObj.status !== 'active')) {
+                              cartId = null;
+                            }
+                          } catch (e) {
+                            cartId = null;
+                          }
+                        }
+
+                        if (!cartId) {
+                          // crear carrito público activo
+                          try {
+                            const resp = await axios.post(`${API_BASE}/cart`, { status: 'active' });
                             const d = resp?.data;
                             cartId = d?.id || d?._id || d?.cartId || d?.data?.id || d?.data?._id || null;
                             if (cartId) localStorage.setItem('cartId', String(cartId));
@@ -162,7 +174,7 @@ const ProductPage = () => {
                     {adding ? 'Añadiendo...' : 'Añadir al carrito'}
                   </button>
 
-                  {hasRole && hasRole('admin') && (
+                  {isAdmin && (
                     <button
                       className="btn btn-danger"
                       style={{ marginLeft: 8 }}
@@ -190,6 +202,16 @@ const ProductPage = () => {
                       }}
                     >
                       {deleting ? 'Eliminando...' : 'Eliminar producto'}
+                    </button>
+                  )}
+
+                  {isAdmin && (
+                    <button
+                      className="btn btn-warning"
+                      style={{ marginLeft: 8 }}
+                      onClick={() => navigate(`/add?edit=${product.id || product._id || id}`)}
+                    >
+                      Editar producto
                     </button>
                   )}
 

@@ -11,7 +11,9 @@ const ProductsPage = () => {
     const fetchData = async () => {
       try {
         const res = await axios.get(`${API_BASE}/product`);
-        setProducts(res.data || []);
+        // Normalizar respuesta: algunas APIs devuelven array directo, otras { data: [...] }
+        const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        setProducts(list || []);
       } catch (error) {
         console.error("Error al obtener productos:", error);
       }

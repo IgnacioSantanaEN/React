@@ -102,18 +102,46 @@ const PagoPage = () => {
     if (!window.confirm('Confirmar compra?')) return;
     try {
       setSaving(true);
-      // El backend gestiona la eliminación de cart_detail y luego del cart
-      const delResp = await axios.delete(`${API_BASE}/cart/${cartId}`);
-      // Aceptar 200/204 como éxito; si la API devuelve otra estructura, mostrarla
-      if (delResp && (delResp.status === 200 || delResp.status === 204 || delResp.status === 201)) {
-        localStorage.removeItem('cartId');
-        alert('Compra realizada');
-        navigate('/');
-      } else {
-        // Si la respuesta no es la esperada, informar y no limpiar automático para que el usuario pueda investigar
-        console.warn('DELETE /cart respondió con status inesperado:', delResp.status, delResp.data);
-        alert('La API respondió inesperadamente al intentar borrar el carrito. Revisa la consola.');
+      // Nuevo flujo: marcar carrito como inactive, eliminar sus detalles y crear un nuevo carrito active
+      try {
+        // intentar marcar carrito como inactive
+        await axios.patch(`${API_BASE}/cart/${cartId}`, { status: 'inactive' });
+      } catch (e) {
+        console.warn('No se pudo marcar carrito como inactive (quizá la API no soporta PATCH):', e?.response || e?.message || e);
       }
+
+      // intentar eliminar cada detalle del carrito (si la API no ofrece borrado por cart_id)
+      try {
+        await Promise.all(lines.map(async (l) => {
+          if (!l?.id) return;
+          try {
+            await axios.delete(`${API_BASE}/cart_detail/${l.id}`);
+          } catch (ee) {
+            console.warn('No se pudo borrar cart_detail', l.id, ee?.response || ee?.message || ee);
+          }
+        }));
+      } catch (delErr) {
+        console.warn('Error borrando detalles del carrito:', delErr);
+      }
+
+      // crear nuevo carrito activo y guardarlo en localStorage
+      try {
+        const newResp = await axios.post(`${API_BASE}/cart`, { status: 'active' });
+        const nd = newResp?.data;
+        const newId = nd?.id || nd?._id || nd?.cartId || nd?.data?.id || nd?.data?._id || null;
+        if (newId) {
+          localStorage.setItem('cartId', String(newId));
+          window.dispatchEvent(new Event('cartUpdated'));
+        } else {
+          localStorage.removeItem('cartId');
+        }
+      } catch (createErr) {
+        console.error('No se pudo crear nuevo carrito activo tras pagar:', createErr?.response || createErr?.message || createErr);
+        localStorage.removeItem('cartId');
+      }
+
+      alert('Compra realizada');
+      navigate('/');
     } catch (err) {
       console.error('Error al finalizar compra:', err);
       const status = err?.response?.status;

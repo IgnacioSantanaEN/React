@@ -1,12 +1,12 @@
 import './index.css'
 import { Route, Routes } from 'react-router-dom'
+
 import Layout from './layout/Layout'
 import Registro from './paginas/signup'
 import Home from './paginas/home'
 import Inicio from './paginas/login'
 import AñadirProducto from './paginas/addProd'
 import Productos from './paginas/productos'
-// Usar la versión corregida temporalmente para pruebas
 import Producto from './paginas/producto_fixed'
 import PagoPage from './paginas/pago'
 import Usuarios from './paginas/usuarios'
@@ -32,8 +32,6 @@ function App() {
           <Route path="producto/:id" element={<Producto />} />
           <Route path="pago" element={<PagoPage />} />
           <Route path="usuarios" element={<Usuarios />} />
-          {/* Ruta de usuarios eliminada */}
-          {/* Ruta de usuario eliminada */}
         </Route>
       </Routes>
     </>

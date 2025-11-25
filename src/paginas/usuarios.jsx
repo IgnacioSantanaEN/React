@@ -33,6 +33,8 @@ const UsuariosPage = () => {
         name: editing.name ?? editing.full_name ?? editing.username ?? '',
         email: editing.email ?? '',
         role: editing.role ?? 'cliente',
+        // backend uses `status` with values like 'unlocked' / 'locked'
+        status: editing.status ?? (editing.blocked ? 'locked' : 'unlocked'),
         id: editing.id ?? editing._id ?? editing.email,
       });
     }
@@ -80,12 +82,33 @@ const UsuariosPage = () => {
     }
   };
 
+  const toggleBlocked = async (u) => {
+    const userId = u.id ?? u._id ?? u.email;
+    if (!userId) return alert('ID de usuario no disponible');
+    const willLock = (u.status ?? (u.blocked ? 'locked' : 'unlocked')) !== 'locked';
+    if (!window.confirm(`${u.name || userId} será ${willLock ? 'bloqueado' : 'desbloqueado'}. Continuar?`)) return;
+    try {
+      const payload = { status: willLock ? 'locked' : 'unlocked' };
+      const res = await axios.patch(`${API_BASE}/user/${userId}`, payload);
+      if (res && (res.status === 200 || res.status === 204 || res.status === 201)) {
+        setUsers((prev) => prev.map(x => ((x.id ?? x._id ?? x.email) === userId ? { ...x, ...payload } : x)));
+        alert(`Usuario ${willLock ? 'bloqueado' : 'desbloqueado'}`);
+      } else {
+        console.warn('Respuesta inesperada al toggle status:', res.status, res.data);
+        alert('Error al cambiar estado de bloqueo');
+      }
+    } catch (err) {
+      console.error('Error toggling status:', err);
+      alert('No se pudo cambiar el estado de bloqueo');
+    }
+  };
+
   const saveEdit = async (updated) => {
     const userId = updated.id ?? updated._id ?? updated.email;
     if (!userId) return alert('ID de usuario no disponible');
     try {
       // Intentamos PATCH; si la API no lo soporta, el catch mostrará el error
-      const payload = { name: updated.name, email: updated.email, role: updated.role };
+      const payload = { name: updated.name, email: updated.email, role: updated.role, status: updated.status ?? (updated.blocked ? 'locked' : 'unlocked') };
       const res = await axios.patch(`${API_BASE}/user/${userId}`, payload);
       if (res && (res.status === 200 || res.status === 204 || res.status === 201)) {
         setUsers((prev) => prev.map((u) => ((u.id ?? u._id ?? u.email) === userId ? { ...u, ...payload } : u)));
@@ -138,6 +161,10 @@ const UsuariosPage = () => {
                   <option value="cliente">Cliente</option>
                   <option value="admin">Administrador</option>
                 </select>
+              </div>
+              <div className="mb-3 form-check">
+                <input className="form-check-input" type="checkbox" checked={!!editForm.blocked} id="blockedCheck" onChange={(e) => setEditForm(f => ({ ...f, blocked: e.target.checked }))} />
+                <label className="form-check-label" htmlFor="blockedCheck">Bloqueado</label>
               </div>
             </div>
             <div className="card-footer d-flex justify-content-end">
@@ -203,20 +230,22 @@ const UsuariosPage = () => {
                   <td>{u.name ?? u.full_name ?? u.username ?? '—'}</td>
                   <td>{u.email ?? '—'}</td>
                   <td>{u.role ?? '—'}</td>
+                  <td>{(u.status ?? (u.blocked ? 'locked' : 'unlocked')) === 'locked' ? <span className="badge bg-danger">Bloqueado</span> : <span className="badge bg-success">Activo</span>}</td>
                   {isAdmin && (
-                      <td>
-                        <div className="d-flex gap-2">
-                          {currentId !== (u.id ?? u._id ?? u.email) ? (
-                            <button
-                              className="btn btn-sm btn-danger"
-                              onClick={() => deleteUser(u)}
-                            >
-                              Eliminar
-                            </button>
-                          ) : (
-                            <span className="text-muted">—</span>
-                          )}
-                          {editMode && (
+                    <td>
+                      <div className="d-flex gap-2">
+                        {currentId !== (u.id ?? u._id ?? u.email) ? (
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => deleteUser(u)}
+                          >
+                            Eliminar
+                          </button>
+                        ) : (
+                          <span className="text-muted">—</span>
+                        )}
+                        {editMode && (
+                          <>
                             <button
                               className="btn btn-sm"
                               onClick={() => { setEditing(u); setShowModal(true); }}
@@ -224,10 +253,14 @@ const UsuariosPage = () => {
                             >
                               Editar
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    )}
+                            <button className="btn btn-sm btn-outline-secondary" onClick={() => toggleBlocked(u)}>
+                              {(u.status ?? (u.blocked ? 'locked' : 'unlocked')) === 'locked' ? 'Desbloquear' : 'Bloquear'}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
