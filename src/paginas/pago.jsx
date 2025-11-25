@@ -28,15 +28,40 @@ const PagoPage = () => {
 
         // para cada detalle, obtener info del producto (si es necesario)
         const enriched = await Promise.all(details.map(async (d) => {
-          const productId = d.product; // campo según tu comentario
+          // Soportar varias formas de cómo el detalle puede referenciar al producto
+          // - d.product puede ser id (number/string)
+          // - d.product_id
+          // - d.product puede ser un objeto embebido con name/price
           let productData = null;
-          try {
-            const p = await axios.get(`${API_BASE}/product/${productId}`);
-            productData = p.data || null;
-          } catch (e) {
-            // si falla, dejamos productData null
-            console.warn('No se pudo obtener product data for', productId, e);
+          let productId = null;
+
+          // Si d.product es un objeto que ya contiene datos útiles, úsalo directamente
+          if (d && typeof d.product === 'object' && d.product !== null && (d.product.name || d.product.price)) {
+            productData = d.product;
+          } else {
+            productId = d.product ?? d.product_id ?? d.productId ?? (d.product && (d.product.id || d.product._id));
           }
+
+          // Si no tenemos productData pero sí un productId, intentar obtenerlo del endpoint
+          if (!productData && productId) {
+            try {
+              const p = await axios.get(`${API_BASE}/product/${productId}`);
+              // Normalizar respuesta: algunos endpoints devuelven { data: {...} }
+              productData = p.data?.data ?? p.data ?? null;
+            } catch (e) {
+              console.warn('No se pudo obtener product data for', productId, e);
+            }
+          }
+
+          // Por si el detalle contiene campos directos de precio/nombre (fallbacks)
+          if (!productData) {
+            const fallbackName = d.product_name || d.name || d.title || null;
+            const fallbackPrice = d.product_price ?? d.price ?? d.unit_price ?? null;
+            if (fallbackName || fallbackPrice != null) {
+              productData = { name: fallbackName, price: fallbackPrice };
+            }
+          }
+
           return { ...d, productData };
         }));
 
