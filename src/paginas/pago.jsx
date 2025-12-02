@@ -9,7 +9,7 @@ const PagoPage = () => {
   const cartId = typeof window !== 'undefined' ? localStorage.getItem('cartId') : null;
 
   const [loading, setLoading] = useState(true);
-  const [cart, setCart] = useState(null);
+  // No usamos entidad `cart` aquí — trabajamos sobre `cart_detail`.
   const [lines, setLines] = useState([]); // each: { id, cart_id, product, quantity, productData }
   const [saving, setSaving] = useState(false);
 
@@ -18,10 +18,6 @@ const PagoPage = () => {
       if (!cartId) { setLoading(false); return; }
       try {
         setLoading(true);
-        // obtener carrito (metadata)
-        const cartRes = await axios.get(`${API_BASE}/cart/${cartId}`);
-        setCart(cartRes.data || null);
-
         // obtener líneas del carrito
         const detailsRes = await axios.get(`${API_BASE}/cart_detail?cart_id=${cartId}`);
         const details = Array.isArray(detailsRes.data) ? detailsRes.data : (detailsRes.data?.data || []);
@@ -102,15 +98,7 @@ const PagoPage = () => {
     if (!window.confirm('Confirmar compra?')) return;
     try {
       setSaving(true);
-      // Nuevo flujo: marcar carrito como inactive, eliminar sus detalles y crear un nuevo carrito active
-      try {
-        // intentar marcar carrito como inactive
-        await axios.patch(`${API_BASE}/cart/${cartId}`, { status: 'inactive' });
-      } catch (e) {
-        console.warn('No se pudo marcar carrito como inactive (quizá la API no soporta PATCH):', e?.response || e?.message || e);
-      }
-
-      // intentar eliminar cada detalle del carrito (si la API no ofrece borrado por cart_id)
+      // Ahora no existe tabla `cart`. Procedemos a eliminar todos los cart_detail del cartId
       try {
         await Promise.all(lines.map(async (l) => {
           if (!l?.id) return;
@@ -124,11 +112,14 @@ const PagoPage = () => {
         console.warn('Error borrando detalles del carrito:', delErr);
       }
 
-      // crear nuevo carrito activo y guardarlo en localStorage
+      // Generar un nuevo cartId en cliente y guardarlo
       try {
-        const newResp = await axios.post(`${API_BASE}/cart`, { status: 'active' });
-        const nd = newResp?.data;
-        const newId = nd?.id || nd?._id || nd?.cartId || nd?.data?.id || nd?.data?._id || null;
+        let newId;
+        try {
+          newId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+        } catch (e) {
+          newId = `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+        }
         if (newId) {
           localStorage.setItem('cartId', String(newId));
           window.dispatchEvent(new Event('cartUpdated'));
@@ -136,7 +127,7 @@ const PagoPage = () => {
           localStorage.removeItem('cartId');
         }
       } catch (createErr) {
-        console.error('No se pudo crear nuevo carrito activo tras pagar:', createErr?.response || createErr?.message || createErr);
+        console.error('No se pudo generar nuevo cartId tras pagar:', createErr);
         localStorage.removeItem('cartId');
       }
 
@@ -159,16 +150,19 @@ const PagoPage = () => {
     return s + price * qty;
   }, 0);
 
+  const totalItems = lines.reduce((s, l) => s + (Number(l.quantity) || 0), 0);
+
   if (loading) return <div className="container mt-5 pt-5">Cargando carrito...</div>;
 
   return (
     <div className="container mt-5 pt-5">
-      <h3>Resumen carrito {cartId ? `#${cartId}` : ''}</h3>
+      <h3>Informacion del carrito</h3>
+      {cartId && <div className="mb-2">Total unidades: <strong>{totalItems}</strong> — Productos distintos: <strong>{lines.length}</strong></div>}
       {!cartId && <p>No hay carrito activo. Crea uno primero desde Productos.</p>}
 
       {cartId && (
         <>
-          <div className="mb-3">Estado: <strong>{cart?.status || '—'}</strong></div>
+          {/* Estado del carrito: el backend no expone metadata `cart` en este proyecto */}
 
           <table className="table">
             <thead>

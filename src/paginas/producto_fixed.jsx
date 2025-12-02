@@ -108,30 +108,15 @@ const ProductPage = () => {
 
                       try {
                         setAdding(true);
-                        // Obtener cartId existente y verificar que sea ACTIVO
+                        // Obtener/crear cartId en el cliente (ya no existe tabla `cart`)
                         let cartId = typeof window !== 'undefined' ? localStorage.getItem('cartId') : null;
-                        if (cartId) {
-                          try {
-                            const chk = await axios.get(`${API_BASE}/cart/${cartId}`);
-                            const cartObj = chk?.data?.data ?? chk?.data ?? null;
-                            if (!cartObj || (cartObj.status && cartObj.status !== 'active')) {
-                              cartId = null;
-                            }
-                          } catch (e) {
-                            cartId = null;
-                          }
-                        }
-
                         if (!cartId) {
-                          // crear carrito público activo
                           try {
-                            const resp = await axios.post(`${API_BASE}/cart`, { status: 'active' });
-                            const d = resp?.data;
-                            cartId = d?.id || d?._id || d?.cartId || d?.data?.id || d?.data?._id || null;
-                            if (cartId) localStorage.setItem('cartId', String(cartId));
-                          } catch (cartErr) {
-                            console.error('No se pudo crear carrito:', cartErr?.response || cartErr?.message || cartErr);
+                            cartId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+                          } catch (e) {
+                            cartId = `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
                           }
+                          localStorage.setItem('cartId', String(cartId));
                         }
 
                         if (!cartId) {

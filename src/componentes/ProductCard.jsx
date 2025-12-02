@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
@@ -10,11 +10,13 @@ const ProductCard = ({ product = {}, onClick }) => {
   const images = Array.isArray(product.images) ? product.images : [];
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
+  // Simplified image resolver: images are either strings (URLs) or objects with a `url` field.
   const getUrl = (img) => {
-          if (!img) return null;
+    if (!img) return null;
     if (typeof img === 'string') return img;
-    return img.url || img.path || img.file?.url || img.path_display || null;
+    return img.url || null;
   };
 
   const visibleImages = images.map(getUrl).filter(Boolean);
@@ -50,49 +52,56 @@ const ProductCard = ({ product = {}, onClick }) => {
                   className="btn btn-sm"
                   style={{ backgroundColor: '#ffffff', color: '#000', borderColor: '#ced4da' }}
                   onClick={async () => {
-                    // Añadir al carrito público (cantidad = 1 siempre). Crea carrito si falta.
-                      try {
-                      let cartId = typeof window !== 'undefined' ? localStorage.getItem('cartId') : null;
-                      if (cartId) {
-                        // verificar que el carrito guardado esté ACTIVO
-                        try {
-                          const chk = await axios.get(`${API_BASE}/cart/${cartId}`);
-                          const cartObj = chk?.data?.data ?? chk?.data ?? null;
-                          if (!cartObj || (cartObj.status && cartObj.status !== 'active')) {
-                            cartId = null;
-                          }
-                        } catch (e) {
-                          cartId = null;
-                        }
-                      }
+                    if (loading) return;
+                    setLoading(true);
+                    const rawId = product?.id ?? product?._id ?? product?.product_id ?? null;
+                    if (!rawId) {
+                      alert('ID de producto no disponible');
+                      setLoading(false);
+                      return;
+                    }
 
-                      if (!cartId) {
-                        // crear carrito público con status active
-                        const resp = await axios.post(`${API_BASE}/cart`, { status: 'active' });
-                        const d = resp?.data;
-                        cartId = d?.id || d?._id || d?.cartId || d?.data?.id || d?.data?._id || null;
-                        if (cartId) localStorage.setItem('cartId', String(cartId));
-                      }
-                      if (!cartId) return alert('No se pudo crear o recuperar el carrito');
-                      const rawId = product?.id ?? product?._id ?? product?.product_id ?? null;
-                      if (!rawId) return alert('ID de producto no disponible');
-                      const productId = (typeof rawId === 'string' && !isNaN(rawId)) ? Number(rawId) : rawId;
-                      const payload = { cart_id: cartId, product_id: productId, product: productId, quantity: 1 };
-                      const resp = await axios.post(`${API_BASE}/cart_detail`, payload);
-                      if (resp && (resp.status === 200 || resp.status === 201 || resp.status === 204)) {
-                        window.dispatchEvent(new Event('cartUpdated'));
-                        alert('Producto añadido al carrito');
-                      } else {
-                        console.warn('Respuesta inesperada al añadir al carrito:', resp?.status, resp?.data);
+                    const productId = rawId;
+
+                    try {
+                      if (API_BASE) {
+                        // Asegurar cartId cliente si la API lo necesita
+                        let cartId = typeof window !== 'undefined' ? localStorage.getItem('cartId') : null;
+                        if (!cartId) {
+                          try {
+                            cartId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+                          } catch (e) {
+                            cartId = `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+                          }
+                          localStorage.setItem('cartId', String(cartId));
+                        }
+
+                        const payload = { cart_id: cartId, product_id: productId, product: productId, quantity: 1 };
+                        console.debug('Añadiendo producto al carrito - POST', `${API_BASE}/cart_detail`, payload);
+                        const resp = await axios.post(`${API_BASE}/cart_detail`, payload);
+                        if (resp && (resp.status === 200 || resp.status === 201 || resp.status === 204)) {
+                          window.dispatchEvent(new Event('cartUpdated'));
+                          console.debug('Evento cartUpdated despachado tras POST exitoso', resp?.data);
+                          alert('Producto añadido al carrito');
+                          setLoading(false);
+                          return;
+                        }
+                        // Si la respuesta no fue exitosa, mostrar error
+                        console.warn('Respuesta inesperada al añadir al carrito (API):', resp?.status, resp?.data);
                         alert('No se pudo añadir al carrito (respuesta inesperada)');
+                      } else {
+                        alert('No hay backend configurado para añadir al carrito');
                       }
                     } catch (err) {
-                      console.error('Error añadiendo al carrito desde tarjeta:', err?.response || err.message || err);
-                      alert('No se pudo añadir al carrito');
+                      console.error('Error añadiendo al carrito (API):', err?.response || err.message || err);
+                      alert('No se pudo añadir al carrito (error de servidor)');
+                    } finally {
+                      setLoading(false);
                     }
                   }}
+                  disabled={loading}
                 >
-                  Añadir
+                  {loading ? 'Añadiendo...' : 'Añadir'}
                 </button>
 
           {isAdmin && (

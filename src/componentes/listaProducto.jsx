@@ -1,24 +1,14 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ProductCard from "./ProductCard";
 
-const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
-
 const ProductoLista = ({ products }) => {
-  const { isAdmin, user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [query, setQuery] = useState('');
   const items = Array.isArray(products) ? products : [];
-  const q = (query || '').trim().toLowerCase();
-  const filtered = q
-    ? items.filter((p) => {
-        const name = String(p.name || p.title || '').toLowerCase();
-        const desc = String(p.description || p.desc || '').toLowerCase();
-        const price = String(p.price || p.unit_price || '').toLowerCase();
-        return name.includes(q) || desc.includes(q) || price.includes(q);
-      })
-    : items;
+  const s = query.trim().toLowerCase();
+  const filtered = !s ? items : items.filter((p) => (p.name || '').toLowerCase().includes(s));
 
   return (
     <div className="container mt-5 pt-5 body-background">
@@ -30,8 +20,6 @@ const ProductoLista = ({ products }) => {
               + Añadir Producto
             </Link>
           )}
-
-          {/* 'Usar carrito' removed — carrito público se crea al añadir desde tarjetas */}
         </div>
       </div>
 
