@@ -58,8 +58,6 @@ const Navbar = () => {
               </li>
             )}
 
-            
-            
             {isAuthenticated && (
               <>
                 <li className="nav-item d-flex align-items-center ms-2">

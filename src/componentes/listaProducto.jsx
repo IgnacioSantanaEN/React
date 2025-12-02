@@ -7,8 +7,16 @@ const ProductoLista = ({ products }) => {
   const { isAdmin } = useAuth();
   const [query, setQuery] = useState('');
   const items = Array.isArray(products) ? products : [];
-  const s = query.trim().toLowerCase();
-  const filtered = !s ? items : items.filter((p) => (p.name || '').toLowerCase().includes(s));
+  const q = (query || '').trim().toLowerCase();
+  const filtered = useMemo(() => {
+    if (!q) return items;
+    return items.filter((p) => {
+      const name = String(p.name || p.title || '').toLowerCase();
+      const desc = String(p.description || p.desc || '').toLowerCase();
+      const price = String(p.price || p.unit_price || '').toLowerCase();
+      return name.includes(q) || desc.includes(q) || price.includes(q);
+    });
+  }, [items, q]);
 
   return (
     <div className="container mt-5 pt-5 body-background">
