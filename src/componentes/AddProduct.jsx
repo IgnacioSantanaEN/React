@@ -34,13 +34,14 @@ const AddProductForm = () => {
     setFiles(list);
   };
 
+  {/* Crea el producto */}
   const createProductAxios = async (payload) => {
     const body = { ...payload, images: payload.images || [] };
     const { data } = await axios.post(`${API_BASE}/product`, body);
     return data;
   };
   
-
+  {/* Sube las imágenes */}
   const uploadImagesAxios = async () => {
     const fd = new FormData();
     for (const f of files) {
@@ -52,16 +53,19 @@ const AddProductForm = () => {
     return data;
   };
 
+  {/* Aplica PATCH para actualizar las imágenes del producto */}
   const patchProductImagesAxios = async (productId, imagesArr) => {
     const { data } = await axios.patch(`${API_BASE}/product/${productId}`, { images: imagesArr });
     return data;
   };
 
+  {/* Aplica PATCH para actualizar el producto */}
   const patchProductAxios = async (productId, payload) => {
     const { data } = await axios.patch(`${API_BASE}/product/${productId}`, payload);
     return data;
   };
 
+  {/* Maneja la creación y subida de imágenes */}
   const handleCreateAndUpload = async () => {
     setLoading(true);
     setStatus('Creando producto y subiendo imágenes...');
@@ -126,6 +130,7 @@ const AddProductForm = () => {
   // Ejecuta crear producto y subir imágenes en paralelo cuando sea posible,
   // luego adjunta las imágenes mediante PATCH. Muestra estado y usa setLoading durante todo el proceso.
   const handleAllInOne = async () => {
+    // Ejecuta secuencial: primero crear producto, luego subir imágenes, luego PATCH imágenes
     // Requerir al menos 1 imagen
     if (!files || files.length === 0) {
       alert('Por favor sube al menos 1 imagen.');
@@ -136,20 +141,22 @@ const AddProductForm = () => {
     setStatus('Iniciando proceso completo...');
     setResult(null);
     try {
-      // Ejecutar creación y subida en paralelo cuando haya archivos.
-      setStatus('Creando producto y subiendo imágenes en paralelo...');
-
-      const createPromise = createProductAxios(form);
-      const uploadPromise = (files && files.length > 0) ? uploadImagesAxios() : Promise.resolve(null);
-
-      const [created, uploaded] = await Promise.all([createPromise, uploadPromise]);
-
+      // 1) Crear producto
+      setStatus('Creando producto...');
+      const created = await createProductAxios(form);
       setCreatedProduct(created);
-      if (uploaded) setUploadedImages(uploaded);
+      setStatus(`Producto creado. ID: ${created.id}`);
 
-      setStatus('Operaciones de creación/subida completadas. Preparando PATCH...');
+      // 2) Subir imágenes
+      let uploaded = null;
+      if (files && files.length > 0) {
+        setStatus('Subiendo imágenes...');
+        uploaded = await uploadImagesAxios();
+        setUploadedImages(uploaded);
+        setStatus(`Imágenes subidas: ${Array.isArray(uploaded) ? uploaded.length : '??'}`);
+      }
 
-      // Si hay imágenes subidas, hacer PATCH para adjuntarlas.
+      // 3) Adjuntar imágenes mediante PATCH (solo images[])
       if (uploaded && (Array.isArray(uploaded) ? uploaded.length > 0 : true)) {
         setStatus('Adjuntando imágenes al producto (PATCH)...');
         const updated = await patchProductImagesAxios(created.id, uploaded);
@@ -262,7 +269,6 @@ const AddProductForm = () => {
 
               <div className="col-12 col-md-6">
                 {/* 'Comentario: Sube al menos 1 imagen (jpg, png). Tamaño recomendado ≤ 2MB' */}
-                <small className="form-text text-muted mb-1">Sube al menos 1 imagen (jpg, png). Tamaño recomendado ≤ 2MB</small>
                 <label className="form-label">Imágenes (múltiples)</label>
                 <input type="file" multiple accept="image/*" onChange={onFilesChange} className="form-control" />
                 <div className="form-text mt-1">Imágenes seleccionadas: {files ? files.length : 0}</div>

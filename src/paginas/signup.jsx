@@ -9,6 +9,7 @@ const Signup = () => {
     email: "",
     password: "",
     role: "",
+    status: 'unlocked',
   });
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
@@ -31,6 +32,8 @@ const Signup = () => {
       if (!isAdmin) {
         payload.role = 'cliente';
       }
+      // Aseguramos que el nuevo usuario tenga estado 'unlocked' por defecto
+      payload.status = 'unlocked';
       const response = await registerUser(payload);
       setSuccess(true);
       // Limpia el formulario para evitar re-envíos accidentales
@@ -123,6 +126,8 @@ const Signup = () => {
           <option value="cliente">Cliente</option>
           {isAdmin && <option value="admin">Administrador</option>}
         </select>
+
+          {/* El campo 'status' se envía siempre como 'unlocked' y no se muestra al usuario */}
 
         <button type="submit" className="btn btn-success w-100 mb-5 pt-2">
           Registrarse

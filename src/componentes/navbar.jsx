@@ -31,7 +31,7 @@ const Navbar = () => {
         {/* Barra de navegacion*/}
         <div className="collapse navbar-collapse fs-2">
           <ul className="navbar-nav mb-2 mb-lg-0 ms-auto">
-            <li className="nav-item bg-light rounded d-flex align-items-center">
+            <li className="nav-item bg-light rounded d-flex align-items-center me-1">
               <Link className="nav-link d-flex align-items-center text-dark fs-5" to="/pago">
                   <img src="/imagenes/cart.png" alt="Carrito" width="30" height="30" className="me-2" style={{ objectFit: 'contain' }} />
                   Productos
@@ -49,12 +49,6 @@ const Navbar = () => {
             {isAdmin && (
               <li className="nav-item me-1">
                 <Link className="nav-link" to="/usuarios">Usuarios</Link>
-              </li>
-            )}
-
-            {!isAuthenticated && (
-              <li className="nav-item me-1">
-                <Link className="nav-link" to="/signup">Registro</Link>
               </li>
             )}
 

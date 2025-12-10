@@ -13,7 +13,8 @@ const ProductPage = () => {
   const [mainIndex, setMainIndex] = useState(0);
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
-  const { isAdmin } = useAuth();
+  const [addResult, setAddResult] = useState(null);
+  const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
 
@@ -107,44 +108,41 @@ const ProductPage = () => {
                       if (cantidad < 1) { alert('La cantidad debe ser al menos 1'); return; }
 
                       try {
-                        setAdding(true);
-                        // Obtener/crear cartId en el cliente (ya no existe tabla `cart`)
-                        let cartId = typeof window !== 'undefined' ? localStorage.getItem('cartId') : null;
-                        if (!cartId) {
-                          try {
-                            cartId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-                          } catch (e) {
-                            cartId = `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-                          }
-                          localStorage.setItem('cartId', String(cartId));
-                        }
-
-                        if (!cartId) {
-                          alert('No se pudo obtener o crear carrito. Intenta de nuevo.');
+                        // Si el usuario está bloqueado, impedir la compra
+                        if (user && (user.status === 'locked' || user.blocked)) {
+                          alert('Usted no esta autorizado para comprar en este sitio');
                           return;
                         }
+                        setAdding(true);
+                        // Obtener sessionId si ya existe; no crear uno localmente — dejar que Xano lo genere la primera vez
+                        let sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
 
                         const productId = product?.id || product?._id || id;
                         // Asegurarse de enviar el id del producto en los campos más comunes
                         const normalizedProductId = typeof productId === 'number' || (typeof productId === 'string' && !isNaN(productId)) ? Number(productId) : productId;
                         const detailPayload = {
-                          cart_id: cartId,
                           product: normalizedProductId,
                           product_id: normalizedProductId,
                           quantity: cantidad,
                         };
+                        if (sessionId) detailPayload.session_id = sessionId;
                         console.log('Intentando POST /cart_detail con payload (normalized):', detailPayload);
                         try {
-                          await axios.post(`${API_BASE}/cart_detail`, detailPayload, { headers: { 'Content-Type': 'application/json' } });
-                          alert('Producto añadido al carrito');
-                        } catch (postErr) {
-                          console.error('POST /cart_detail falló:', postErr?.response || postErr?.message || postErr);
-                          // Mostrar error del servidor si está disponible
-                          if (postErr?.response?.data) {
-                            alert('Error del servidor: ' + JSON.stringify(postErr.response.data));
+                          const res = await axios.post(`${API_BASE}/cart_detail`, detailPayload, { headers: { 'Content-Type': 'application/json' } });
+                          // Extraer y guardar session_id devuelto por Xano
+                          // Xano devuelve `session_id` en top-level (`res.data.session_id`) según tu ejemplo
+                          const returnedSession = res?.data?.session_id ?? null;
+                          if (returnedSession) {
+                            try { localStorage.setItem('sessionId', String(returnedSession)); } catch (e) { console.warn('No se pudo guardar sessionId', e); }
                           }
 
-                          // Si falla, mostrar el error (la API debería indicar el campo esperado)
+                          const model = res?.data?.data ?? res?.data ?? res;
+                          setAddResult(model);
+                          try { alert('POST /cart_detail OK\n' + JSON.stringify(model, null, 2)); } catch (e) { alert('Producto añadido al carrito'); }
+                        } catch (postErr) {
+                          console.error('POST /cart_detail falló:', postErr?.response || postErr?.message || postErr);
+                          const serverMsg = postErr?.response?.data ? JSON.stringify(postErr.response.data) : (postErr?.message || String(postErr));
+                          alert('No se pudo añadir al carrito (error de servidor)\n' + serverMsg);
                           console.log('No se pudo añadir con payload normal. Revisar respuesta del servidor para el campo esperado.');
                         }
                       } catch (err) {

@@ -6,12 +6,17 @@ import { Link, useNavigate } from 'react-router-dom';
 const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
 
 const UsuariosPage = () => {
+  // Helpers
+  const getUserId = (u) => u?.id ?? u?.user_id ?? u?._id ?? u?.email;
+  const getStatus = (u) => (u?.status ?? (u?.blocked ? 'locked' : 'unlocked'));
+  const isOk = (res) => !!res && (res.status === 200 || res.status === 201 || res.status === 204);
+
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
 
-  const { isAdmin, user } = useAuth();
-  const currentId = user?.id ?? user?._id ?? user?.email;
+  const { isAdmin, user, authToken, login, logout } = useAuth();
+  const currentId = getUserId(user);
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const q = (query || '').trim().toLowerCase();
@@ -34,8 +39,8 @@ const UsuariosPage = () => {
         email: editing.email ?? '',
         role: editing.role ?? 'cliente',
         // backend uses `status` with values like 'unlocked' / 'locked'
-        status: editing.status ?? (editing.blocked ? 'locked' : 'unlocked'),
-        id: editing.id ?? editing._id ?? editing.email,
+        status: getStatus(editing),
+        id: getUserId(editing),
       });
     }
   }, [editing]);
@@ -59,19 +64,22 @@ const UsuariosPage = () => {
   }, []);
 
   const deleteUser = async (u) => {
-    const userId = u.id ?? u._id ?? u.email;
-    if (!userId) return alert('ID de usuario no disponible');
-    const currentId = user?.id ?? user?._id ?? user?.email;
+    const userId = getUserId(u);
+    if (!userId) {
+      console.warn('ID de usuario no disponible');
+      return;
+    }
     if (currentId && currentId === userId) {
-      return alert('No puedes eliminar la cuenta con la que estás autenticado. Para eliminarla, primero inicia sesión con otra cuenta o contacta al administrador.');
+      console.warn('Intento de eliminar la cuenta autenticada bloqueado.');
+      return;
     }
     if (!window.confirm(`Eliminar al usuario ${u.name || userId}? Esta acción es irreversible.`)) return;
     try {
       const res = await axios.delete(`${API_BASE}/user/${userId}`);
       // Si la API devuelve 200/204 consideramos éxito
-      if (res && (res.status === 200 || res.status === 204 || res.status === 201)) {
-        setUsers((prev) => prev.filter(x => (x.id ?? x._id ?? x.email) !== userId));
-        alert('Usuario eliminado');
+      if (isOk(res)) {
+        setUsers((prev) => prev.filter(x => getUserId(x) !== userId));
+        console.info('Usuario eliminado');
       } else {
         console.warn('Respuesta inesperada al eliminar usuario:', res.status, res.data);
         alert('La API respondió inesperadamente al intentar eliminar el usuario. Revisa la consola.');
@@ -83,45 +91,82 @@ const UsuariosPage = () => {
   };
 
   const toggleBlocked = async (u) => {
-    const userId = u.id ?? u._id ?? u.email;
-    if (!userId) return alert('ID de usuario no disponible');
-    const willLock = (u.status ?? (u.blocked ? 'locked' : 'unlocked')) !== 'locked';
+    const userId = getUserId(u);
+    if (!userId) {
+      console.warn('ID de usuario no disponible');
+      return;
+    }
+    const willLock = getStatus(u) !== 'locked';
     if (!window.confirm(`${u.name || userId} será ${willLock ? 'bloqueado' : 'desbloqueado'}. Continuar?`)) return;
     try {
-      const payload = { status: willLock ? 'locked' : 'unlocked' };
+      // Xano endpoint may require certain fields (e.g. name/email/role) when patching.
+      // Send a minimal full payload to avoid "Missing param: name" errors.
+      const payload = {
+        name: u.name ?? u.full_name ?? u.username ?? '',
+        email: u.email ?? '',
+        role: u.role ?? 'cliente',
+        status: willLock ? 'locked' : 'unlocked',
+      };
       const res = await axios.patch(`${API_BASE}/user/${userId}`, payload);
-      if (res && (res.status === 200 || res.status === 204 || res.status === 201)) {
-        setUsers((prev) => prev.map(x => ((x.id ?? x._id ?? x.email) === userId ? { ...x, ...payload } : x)));
-        alert(`Usuario ${willLock ? 'bloqueado' : 'desbloqueado'}`);
+      if (isOk(res)) {
+        setUsers((prev) => prev.map(x => (getUserId(x) === userId ? { ...x, ...payload } : x)));
+        console.info(`Usuario ${willLock ? 'bloqueado' : 'desbloqueado'}`);
+        // Si el usuario modificado es el actualmente autenticado, actualizar el contexto
+        try {
+          if (currentId && String(currentId) === String(userId)) {
+            // Si lo bloqueamos, forzamos logout para evitar acciones adicionales
+            if (payload.status === 'locked') {
+              alert('Tu cuenta ha sido bloqueada. Se cerrará la sesión por seguridad.');
+              if (typeof logout === 'function') logout();
+            } else {
+              // Si lo desbloqueamos, actualizamos el user en el contexto para reflejar el cambio
+              if (typeof login === 'function') {
+                // mantener el mismo token pero actualizar el objeto user
+                login(authToken, { ...user, ...payload });
+              } else {
+                // como fallback, actualizar localStorage directamente
+                try { localStorage.setItem('user', JSON.stringify({ ...user, ...payload })); } catch(e){}
+              }
+            }
+          }
+        } catch (ctxErr) {
+          console.warn('No se pudo sincronizar el contexto de auth tras toggleBlocked:', ctxErr);
+        }
       } else {
         console.warn('Respuesta inesperada al toggle status:', res.status, res.data);
-        alert('Error al cambiar estado de bloqueo');
+        alert('Error al cambiar estado de bloqueo: ' + (res?.data ? JSON.stringify(res.data) : res.status));
       }
     } catch (err) {
-      console.error('Error toggling status:', err);
-      alert('No se pudo cambiar el estado de bloqueo');
+      console.error('Error toggling status:', err?.response || err.message || err);
+      const serverMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+      alert('No se pudo cambiar el estado de bloqueo. Respuesta del servidor: ' + serverMsg);
     }
   };
 
+  // (Se usa `toggleBlocked` para alternar bloqueado/desbloqueado)
+
   const saveEdit = async (updated) => {
-    const userId = updated.id ?? updated._id ?? updated.email;
-    if (!userId) return alert('ID de usuario no disponible');
+    const userId = getUserId(updated);
+    if (!userId) {
+      console.warn('ID de usuario no disponible');
+      return;
+    }
     try {
       // Intentamos PATCH; si la API no lo soporta, el catch mostrará el error
       const payload = { name: updated.name, email: updated.email, role: updated.role, status: updated.status ?? (updated.blocked ? 'locked' : 'unlocked') };
       const res = await axios.patch(`${API_BASE}/user/${userId}`, payload);
-      if (res && (res.status === 200 || res.status === 204 || res.status === 201)) {
-        setUsers((prev) => prev.map((u) => ((u.id ?? u._id ?? u.email) === userId ? { ...u, ...payload } : u)));
+      if (isOk(res)) {
+        setUsers((prev) => prev.map((u) => (getUserId(u) === userId ? { ...u, ...payload } : u)));
         setShowModal(false);
         setEditing(null);
-        alert('Usuario actualizado');
+        console.info('Usuario actualizado');
       } else {
         console.warn('Respuesta inesperada al actualizar usuario:', res.status, res.data);
         alert('La API respondió inesperadamente. Revisa la consola.');
       }
     } catch (err) {
       console.error('Error actualizando usuario:', err?.response?.data || err.message || err);
-      alert('No se pudo actualizar el usuario. Revisa la consola para más detalles.');
+      console.error('No se pudo actualizar el usuario. Revisa la consola para más detalles.');
     }
   };
 
@@ -162,9 +207,34 @@ const UsuariosPage = () => {
                   <option value="admin">Administrador</option>
                 </select>
               </div>
-              <div className="mb-3 form-check">
-                <input className="form-check-input" type="checkbox" checked={!!editForm.blocked} id="blockedCheck" onChange={(e) => setEditForm(f => ({ ...f, blocked: e.target.checked }))} />
-                <label className="form-check-label" htmlFor="blockedCheck">Bloqueado</label>
+              <div className="mb-3">
+                <label className="form-label">Estado</label>
+                <div>
+                  <div className="form-check form-check-inline">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="status"
+                      id="statusUnlocked"
+                      value="unlocked"
+                      checked={editForm.status === 'unlocked'}
+                      onChange={() => setEditForm(f => ({ ...f, status: 'unlocked', blocked: false }))}
+                    />
+                    <label className="form-check-label" htmlFor="statusUnlocked">Activo</label>
+                  </div>
+                  <div className="form-check form-check-inline">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="status"
+                      id="statusLocked"
+                      value="locked"
+                      checked={editForm.status === 'locked'}
+                      onChange={() => setEditForm(f => ({ ...f, status: 'locked', blocked: true }))}
+                    />
+                    <label className="form-check-label" htmlFor="statusLocked">Bloqueado</label>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="card-footer d-flex justify-content-end">
@@ -220,27 +290,30 @@ const UsuariosPage = () => {
                 <th>Nombre</th>
                 <th>Email</th>
                 <th>Rol</th>
-                {isAdmin && <th>Acciones</th>}
+                <th>Estado</th>
+                {isAdmin && editMode && <th>Acciones</th>}
               </tr>
             </thead>
             <tbody>
               {filtered.map((u) => (
-                <tr key={u.id || u._id || u.email}>
-                  <td>{u.id ?? u._id ?? '—'}</td>
+                <tr key={getUserId(u) || u.email}>
+                  <td>{getUserId(u) ?? '—'}</td>
                   <td>{u.name ?? u.full_name ?? u.username ?? '—'}</td>
                   <td>{u.email ?? '—'}</td>
                   <td>{u.role ?? '—'}</td>
-                  <td>{(u.status ?? (u.blocked ? 'locked' : 'unlocked')) === 'locked' ? <span className="badge bg-danger">Bloqueado</span> : <span className="badge bg-success">Activo</span>}</td>
-                  {isAdmin && (
+                  <td>{getStatus(u) === 'locked' ? <span className="badge bg-danger">Bloqueado</span> : <span className="badge bg-success">Activo</span>}</td>
+                  {isAdmin && editMode && (
                     <td>
                       <div className="d-flex gap-2">
-                        {currentId !== (u.id ?? u._id ?? u.email) ? (
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => deleteUser(u)}
-                          >
-                            Eliminar
-                          </button>
+                        {currentId !== getUserId(u) ? (
+                          <>
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => deleteUser(u)}
+                            >
+                              Eliminar
+                            </button>
+                          </>
                         ) : (
                           <span className="text-muted">—</span>
                         )}
@@ -254,7 +327,7 @@ const UsuariosPage = () => {
                               Editar
                             </button>
                             <button className="btn btn-sm btn-outline-secondary" onClick={() => toggleBlocked(u)}>
-                              {(u.status ?? (u.blocked ? 'locked' : 'unlocked')) === 'locked' ? 'Desbloquear' : 'Bloquear'}
+                              {getStatus(u) === 'locked' ? 'Desbloquear' : 'Bloquear'}
                             </button>
                           </>
                         )}

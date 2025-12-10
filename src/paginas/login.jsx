@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { loginUser } from "../api/user";
 import { useAuth } from "../context/AuthContext";
 
@@ -118,6 +119,15 @@ const Ingreso = () => {
 
           <button type="submit" className="btn btn-success w-100 mt-4">Iniciar Sesión</button>
         </form>
+
+        <div className="mx-5 px-5 pb-3 text-center">
+          <div className="d-inline-block bg-dark rounded px-3 py-2">
+            <span className="text-white">¿No tienes cuenta?</span>
+            <Link to="/signup" className="text-white fw-bold ms-2" style={{ textDecoration: 'underline' }}>
+              Regístrate
+            </Link>
+          </div>
+        </div>
 
         {authToken && user && showToken && (
           <div

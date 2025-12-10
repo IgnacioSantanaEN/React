@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 // Props: { product, onClick } - product debe tener al menos { name, price, description, stock_quantity, images }
 const ProductCard = ({ product = {}, onClick }) => {
   const images = Array.isArray(product.images) ? product.images : [];
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -86,6 +86,11 @@ const ProductCard = ({ product = {}, onClick }) => {
             className="btn btn-sm btn-primary"
             onClick={async () => {
               if (loading) return;
+              // Bloquear compra si el usuario está marcado como 'locked'
+              if (user && (user.status === 'locked' || user.blocked)) {
+                alert('Usted no esta autorizado para comprar en este sitio');
+                return;
+              }
               setLoading(true);
               const rawId = product?.id ?? product?._id ?? product?.product_id ?? null;
               if (!rawId) {
@@ -96,18 +101,42 @@ const ProductCard = ({ product = {}, onClick }) => {
               const productId = rawId;
               try {
                 if (API_BASE) {
-                  let cartId = typeof window !== 'undefined' ? localStorage.getItem('cartId') : null;
-                  if (!cartId) {
-                    try {
-                      cartId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-                    } catch (e) {
-                      cartId = `cart-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-                    }
-                    localStorage.setItem('cartId', String(cartId));
+                  // Usar `sessionId` (consistente con otras páginas) en lugar de `cartId`.
+                  // Obtener sessionId si ya existe; no crear uno localmente — dejar que Xano lo genere la primera vez
+                  let sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
+
+                  // Normalizar id de producto: si productId es objeto, intentar extraer .id o ._id
+                  let normalizedProductId = productId;
+                  if (normalizedProductId && typeof normalizedProductId === 'object') {
+                    normalizedProductId = normalizedProductId.id ?? normalizedProductId._id ?? normalizedProductId.product_id ?? null;
+                  }
+                  // Si es un string numérico, convertir a Number
+                  if (typeof normalizedProductId === 'string' && normalizedProductId.trim() !== '' && !Number.isNaN(Number(normalizedProductId))) {
+                    normalizedProductId = Number(normalizedProductId);
                   }
 
-                  const payload = { cart_id: cartId, product_id: productId, product: productId, quantity: Number(quantity) };
-                  const resp = await axios.post(`${API_BASE}/cart_detail`, payload);
+                  // Preparar payload con snapshots para evitar problemas cuando el backend ejecute detalle_venta
+                  const payload = {
+                    product: normalizedProductId,
+                    product_id: normalizedProductId,
+                    product_name: product?.name || product?.title || null,
+                    price: Number(product?.price ?? 0),
+                    quantity: Number(quantity)
+                  };
+                  if (sessionId) payload.session_id = sessionId;
+
+                  // Log para depuración: revisar en consola qué se envía
+                  console.log('POST /cart_detail payload (ProductCard):', payload);
+
+                  const resp = await axios.post(`${API_BASE}/cart_detail`, payload, { headers: { 'Content-Type': 'application/json' } });
+
+                  // Extraer session_id retornado por Xano y guardarlo (si viene)
+                  // Xano devuelve `session_id` en top-level (`resp.data.session_id`) según tu ejemplo
+                  const returnedSession = resp?.data?.session_id ?? null;
+                  if (returnedSession) {
+                    try { localStorage.setItem('sessionId', String(returnedSession)); } catch (e) { console.warn('No se pudo guardar sessionId', e); }
+                  }
+
                   if (resp && (resp.status === 200 || resp.status === 201 || resp.status === 204)) {
                     window.dispatchEvent(new Event('cartUpdated'));
                     alert('Producto añadido al carrito');

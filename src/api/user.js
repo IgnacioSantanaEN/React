@@ -6,11 +6,12 @@ export const makeAuthHeader = (token) => ({
   Authorization: `Bearer ${token}`,
 });
 
-export async function registerUser({ name, email, password, role }) {
+export async function registerUser(payload) {
   try {
+    // Enviamos todo el payload tal cual (incluye status cuando se proporciona)
     const { data } = await axios.post(
       `${AUTH_BASE}/signup`,
-      { name, email, password, role },
+      payload,
       { headers: { "Content-Type": "application/json" } }
     );
     return data;
