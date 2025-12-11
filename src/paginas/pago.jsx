@@ -73,7 +73,7 @@ const PagoPage = () => {
           }
 
           return { ...d, productData };
-        }));
+      gi  }));
 
         setLines(enriched);
       } catch (err) {
@@ -106,9 +106,11 @@ const PagoPage = () => {
       const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
       await axios.delete(`${API_BASE}/cart_detail/${lineId}`, { headers });
       setLines((prev) => prev.filter(l => l.id !== lineId));
+      try { window.dispatchEvent(new Event('cartUpdated')); } catch(e){}
     } catch (err) {
-      console.error('Error eliminando linea:', err);
-      setNotification({ message: 'No se pudo eliminar la línea', type: 'danger' });
+      console.error('Error eliminando linea:', err?.response || err.message || err);
+      const serverMsg = err?.response?.data ? JSON.stringify(err.response.data) : (err?.message || String(err));
+      setNotification({ message: 'No se pudo eliminar la línea\n' + serverMsg, type: 'danger' });
     }
   };
 
@@ -213,7 +215,8 @@ const PagoPage = () => {
         }
 
       setNotification({ message: 'Compra realizada', type: 'success' });
-      setTimeout(() => navigate('/'), 800);
+      // Nota: se removió la navegación automática hacia la página principal
+      // para mantener al usuario en la página de pago tras completar la compra.
       } catch (err) {
       console.error('Error al finalizar compra:', err);
       // err puede ser Error lanzado arriba con mensaje ya serializado o un axios error

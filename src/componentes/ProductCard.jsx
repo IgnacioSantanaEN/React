@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
@@ -21,7 +21,13 @@ const ProductCard = ({ product = {}, onClick }) => {
   };
 
   const visibleImages = images.map(getUrl).filter(Boolean);
-  const mainImage = visibleImages[0] || null;
+  const [imgIndex, setImgIndex] = useState(0);
+
+  useEffect(() => {
+    setImgIndex(0);
+  }, [product?.id, visibleImages.length]);
+
+  const mainImage = visibleImages[imgIndex] || visibleImages[0] || null;
 
   return (
     <div className="card" style={{ width: '100%', maxWidth: 420 }}>
@@ -30,7 +36,11 @@ const ProductCard = ({ product = {}, onClick }) => {
           <img
             src={mainImage}
             alt={product.name || 'producto'}
-            style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
+            onClick={() => {
+              if (visibleImages.length <= 1) return;
+              setImgIndex((i) => (i + 1) % visibleImages.length);
+            }}
+            style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block', cursor: visibleImages.length > 1 ? 'pointer' : 'default' }}
           />
         ) : (
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6c757d' }}>
