@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import Notification from '../componentes/Notification';
 
 const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
 
@@ -14,6 +15,7 @@ const ProductPage = () => {
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
   const [addResult, setAddResult] = useState(null);
+  const [notification, setNotification] = useState(null);
   const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
@@ -41,8 +43,70 @@ const ProductPage = () => {
   const images = Array.isArray(product.images) ? product.images.map((i) => (typeof i === 'string' ? i : i.url || i.path || i.file?.url)) : [];
   const mainImage = images[mainIndex] || null;
 
+  const getProductId = () => product?.id || product?._id || id;
+  const normalizeProductId = (productId) => (typeof productId === 'number' || (typeof productId === 'string' && !isNaN(productId)) ? Number(productId) : productId);
+
+  // Añadir al carrito (extraído del onClick para simplificar JSX)
+  const handleAddToCart = async () => {
+    const cantidad = Number(qty) || 1;
+    if (cantidad < 1) { setNotification({ message: 'La cantidad debe ser al menos 1', type: 'warning' }); return; }
+
+    try {
+      if (user && (user.status === 'locked' || user.blocked)) {
+        setNotification({ message: 'Usted no esta autorizado para comprar en este sitio', type: 'danger' });
+        return;
+      }
+      setAdding(true);
+      let sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
+
+      const productId = getProductId();
+      const normalizedProductId = normalizeProductId(productId);
+      const detailPayload = { product_id: normalizedProductId, quantity: cantidad };
+      if (sessionId) detailPayload.session_id = sessionId;
+
+      const res = await axios.post(`${API_BASE}/cart_detail`, detailPayload, { headers: { 'Content-Type': 'application/json' } });
+      const returnedSession = res?.data?.session_id ?? null;
+      if (returnedSession) {
+        try { localStorage.setItem('sessionId', String(returnedSession)); } catch (e) { console.warn('No se pudo guardar sessionId', e); }
+      }
+      const model = res?.data?.data ?? res?.data ?? res;
+      setAddResult(model);
+      setNotification({ message: 'Producto añadido al carrito', type: 'success' });
+    } catch (postErr) {
+      console.error('POST /cart_detail falló:', postErr?.response || postErr?.message || postErr);
+      const serverMsg = postErr?.response?.data ? JSON.stringify(postErr.response.data) : (postErr?.message || String(postErr));
+      setNotification({ message: 'No se pudo añadir al carrito\n' + serverMsg, type: 'danger' });
+      console.log('No se pudo añadir con payload normal. Revisar respuesta del servidor para el campo esperado.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    const productId = getProductId();
+    if (!productId) { setNotification({ message: 'ID de producto no disponible', type: 'warning' }); return; }
+    if (!window.confirm(`¿Eliminar producto ${product?.name || productId}? Esta acción no se puede deshacer.`)) return;
+    try {
+      setDeleting(true);
+      const resp = await axios.delete(`${API_BASE}/product/${productId}`);
+      if (resp && (resp.status === 200 || resp.status === 204 || resp.status === 201)) {
+        setNotification({ message: 'Producto eliminado', type: 'success' });
+        navigate('/productos');
+      } else {
+        console.warn('Respuesta inesperada al eliminar producto:', resp?.status, resp?.data);
+        setNotification({ message: 'No se pudo eliminar el producto (respuesta inesperada)', type: 'warning' });
+      }
+    } catch (err) {
+      console.error('Error eliminando producto:', err?.response?.data || err.message || err);
+      setNotification({ message: 'Error al eliminar el producto', type: 'danger' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="container mt-5">
+      <Notification notification={notification} onClose={() => setNotification(null)} />
       <Link to="/productos" className="btn btn-danger text-white mb-3">← Volver a productos</Link>
 
       <div className="row">
@@ -98,92 +162,10 @@ const ProductPage = () => {
                     style={{ width: 100 }}
                   />
 
-                  <button
-                    className="btn btn-outline-primary"
-                    onClick={async () => {
-                      // Añadir al carrito mínimo: crear carrito si falta y POST a cart_detail
-                      // Nota: endpoints públicos para pruebas — no requerir autenticación aquí
-
-                      const cantidad = Number(qty) || 1;
-                      if (cantidad < 1) { alert('La cantidad debe ser al menos 1'); return; }
-
-                      try {
-                        // Si el usuario está bloqueado, impedir la compra
-                        if (user && (user.status === 'locked' || user.blocked)) {
-                          alert('Usted no esta autorizado para comprar en este sitio');
-                          return;
-                        }
-                        setAdding(true);
-                        // Obtener sessionId si ya existe; no crear uno localmente — dejar que Xano lo genere la primera vez
-                        let sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
-
-                        const productId = product?.id || product?._id || id;
-                        // Asegurarse de enviar el id del producto en los campos más comunes
-                        const normalizedProductId = typeof productId === 'number' || (typeof productId === 'string' && !isNaN(productId)) ? Number(productId) : productId;
-                        const detailPayload = {
-                          product: normalizedProductId,
-                          product_id: normalizedProductId,
-                          quantity: cantidad,
-                        };
-                        if (sessionId) detailPayload.session_id = sessionId;
-                        console.log('Intentando POST /cart_detail con payload (normalized):', detailPayload);
-                        try {
-                          const res = await axios.post(`${API_BASE}/cart_detail`, detailPayload, { headers: { 'Content-Type': 'application/json' } });
-                          // Extraer y guardar session_id devuelto por Xano
-                          // Xano devuelve `session_id` en top-level (`res.data.session_id`) según tu ejemplo
-                          const returnedSession = res?.data?.session_id ?? null;
-                          if (returnedSession) {
-                            try { localStorage.setItem('sessionId', String(returnedSession)); } catch (e) { console.warn('No se pudo guardar sessionId', e); }
-                          }
-
-                          const model = res?.data?.data ?? res?.data ?? res;
-                          setAddResult(model);
-                          try { alert('POST /cart_detail OK\n' + JSON.stringify(model, null, 2)); } catch (e) { alert('Producto añadido al carrito'); }
-                        } catch (postErr) {
-                          console.error('POST /cart_detail falló:', postErr?.response || postErr?.message || postErr);
-                          const serverMsg = postErr?.response?.data ? JSON.stringify(postErr.response.data) : (postErr?.message || String(postErr));
-                          alert('No se pudo añadir al carrito (error de servidor)\n' + serverMsg);
-                          console.log('No se pudo añadir con payload normal. Revisar respuesta del servidor para el campo esperado.');
-                        }
-                      } catch (err) {
-                        console.error('Error añadiendo al carrito:', err);
-                        alert('No se pudo añadir el producto al carrito');
-                      } finally {
-                        setAdding(false);
-                      }
-                    }}
-                    disabled={adding}
-                  >
-                    {adding ? 'Añadiendo...' : 'Añadir al carrito'}
-                  </button>
+                  <button className="btn btn-outline-primary" onClick={handleAddToCart} disabled={adding}>{adding ? 'Añadiendo...' : 'Añadir al carrito'}</button>
 
                   {isAdmin && (
-                    <button
-                      className="btn btn-danger"
-                      style={{ marginLeft: 8 }}
-                      disabled={deleting}
-                      onClick={async () => {
-                        const productId = product?.id || product?._id || id;
-                        if (!productId) return alert('ID de producto no disponible');
-                        if (!window.confirm(`¿Eliminar producto ${product?.name || productId}? Esta acción no se puede deshacer.`)) return;
-                        try {
-                          setDeleting(true);
-                          const resp = await axios.delete(`${API_BASE}/product/${productId}`);
-                          if (resp && (resp.status === 200 || resp.status === 204 || resp.status === 201)) {
-                            alert('Producto eliminado');
-                            navigate('/productos');
-                          } else {
-                            console.warn('Respuesta inesperada al eliminar producto:', resp?.status, resp?.data);
-                            alert('No se pudo eliminar el producto (respuesta inesperada)');
-                          }
-                        } catch (err) {
-                          console.error('Error eliminando producto:', err?.response?.data || err.message || err);
-                          alert('Error al eliminar el producto');
-                        } finally {
-                          setDeleting(false);
-                        }
-                      }}
-                    >
+                    <button className="btn btn-danger" style={{ marginLeft: 8 }} disabled={deleting} onClick={handleDeleteProduct}>
                       {deleting ? 'Eliminando...' : 'Eliminar producto'}
                     </button>
                   )}

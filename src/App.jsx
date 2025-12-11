@@ -9,6 +9,7 @@ import AñadirProducto from './paginas/addProd'
 import Productos from './paginas/productos'
 import Producto from './paginas/producto_fixed'
 import PagoPage from './paginas/pago'
+import EnviosPage from './paginas/envios'
 import Usuarios from './paginas/usuarios'
 import RoleRoute from './routes/RoleRoute'
 
@@ -31,6 +32,7 @@ function App() {
           <Route path="productos" element={<Productos />} />
           <Route path="producto/:id" element={<Producto />} />
           <Route path="pago" element={<PagoPage />} />
+          <Route path="envios" element={<EnviosPage />} />
           <Route path="usuarios" element={<Usuarios />} />
         </Route>
       </Routes>

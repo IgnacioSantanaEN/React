@@ -34,9 +34,11 @@ const Navbar = () => {
             <li className="nav-item bg-light rounded d-flex align-items-center me-1">
               <Link className="nav-link d-flex align-items-center text-dark fs-5" to="/pago">
                   <img src="/imagenes/cart.png" alt="Carrito" width="30" height="30" className="me-2" style={{ objectFit: 'contain' }} />
-                  Productos
+                  Comprar
               </Link>
             </li>
+
+            
 
             {/* Links de navegación */}
             <li className="nav-item me-1">

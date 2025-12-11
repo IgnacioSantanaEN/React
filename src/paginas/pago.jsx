@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Notification from '../componentes/Notification';
 
 const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
 
@@ -11,7 +12,6 @@ const PagoPage = () => {
   const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
 
   const getLoggedUserId = () => {
-    // Prefer AuthContext user, fallback to localStorage 'user' if present
     const ctxId = user?.id || user?._id || null;
     if (ctxId) return ctxId;
     try {
@@ -21,7 +21,6 @@ const PagoPage = () => {
         return parsed?.id || parsed?._id || null;
       }
     } catch (e) {
-      // ignore parse errors
     }
     return null;
   };
@@ -30,19 +29,16 @@ const PagoPage = () => {
   const [lines, setLines] = useState([]);
   const [saving, setSaving] = useState(false);
   const [compraResult, setCompraResult] = useState(null);
-  const [detallesResult, setDetallesResult] = useState(null);
   const [creatingCompra, setCreatingCompra] = useState(false);
-  const [creatingDetalles, setCreatingDetalles] = useState(false);
   const [creatingEnvio, setCreatingEnvio] = useState(false);
   const [envioResult, setEnvioResult] = useState(null);
-  
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const load = async () => {
-      if (!sessionId) { setLoading(false); return; }
       try {
         setLoading(true);
-        const detailsRes = await axios.get(`${API_BASE}/cart_detail?session_id=${sessionId}`);
+        const detailsRes = await axios.get(`${API_BASE}/cart_detail`);
         const details = Array.isArray(detailsRes.data) ? detailsRes.data : (detailsRes.data?.data || []);
 
         // para cada detalle, obtener info del producto (si es necesario)
@@ -87,33 +83,38 @@ const PagoPage = () => {
       }
     };
     load();
-  }, [sessionId]);
+    // Permitir recargar el carrito desde otros componentes mediante un evento global
+    window.addEventListener('cartUpdated', load);
+    return () => window.removeEventListener('cartUpdated', load);
+  }, []);
 
   const updateQty = async (lineId, newQty) => {
     if (newQty < 1) return;
     try {
-      await axios.patch(`${API_BASE}/cart_detail/${lineId}`, { quantity: newQty });
+      const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+      await axios.patch(`${API_BASE}/cart_detail/${lineId}`, { quantity: newQty }, { headers });
       setLines((prev) => prev.map(l => l.id === lineId ? { ...l, quantity: newQty } : l));
     } catch (err) {
       console.error('Error actualizando cantidad:', err);
-      alert('No se pudo actualizar la cantidad');
+      setNotification({ message: 'No se pudo actualizar la cantidad', type: 'danger' });
     }
   };
 
   const removeLine = async (lineId) => {
     if (!window.confirm('Eliminar este producto del carrito?')) return;
     try {
-      await axios.delete(`${API_BASE}/cart_detail/${lineId}`);
+      const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+      await axios.delete(`${API_BASE}/cart_detail/${lineId}`, { headers });
       setLines((prev) => prev.filter(l => l.id !== lineId));
     } catch (err) {
       console.error('Error eliminando linea:', err);
-      alert('No se pudo eliminar la línea');
+      setNotification({ message: 'No se pudo eliminar la línea', type: 'danger' });
     }
   };
 
   const handlePagar = async () => {
     if (!authToken && !user) {
-      alert('Debes iniciar sesión para completar la compra. Serás redirigido al login.');
+      setNotification({ message: 'Debes iniciar sesión para completar la compra. Serás redirigido al login.', type: 'warning' });
       navigate('/login', { state: { from: '/pago' } });
       return;
     }
@@ -134,11 +135,11 @@ const PagoPage = () => {
 
     // Si el usuario está bloqueado, impedir el pago
     if (freshUser && (freshUser.status === 'locked' || freshUser.blocked)) {
-      alert('Usted no esta autorizado para comprar en este sitio');
+      setNotification({ message: 'Usted no esta autorizado para comprar en este sitio', type: 'danger' });
       return;
     }
 
-    if (!sessionId) { alert('No hay carrito para procesar'); return; }
+    if (lines.length === 0) { setNotification({ message: 'No hay carrito para procesar', type: 'warning' }); return; }
     if (!window.confirm('Confirmar compra?')) return;
     try {
       setSaving(true);
@@ -171,7 +172,9 @@ const PagoPage = () => {
       // 2) detalle_venta eliminado: crear registro de envio (si aplica)
       try {
         const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
-        const envioBody = { compra: compraId, user: getLoggedUserId(), status: 'compra' };
+        // Enviar únicamente `id_compra`. El backend obtendrá `user` desde el token
+        // y establecerá `status: 'pendiente'` por defecto.
+        const envioBody = { id_compra: compraId };
         console.log('POST /envio body (desde pagar):', envioBody);
         try {
           const eres = await axios.post(`${API_BASE}/envio`, envioBody, { headers });
@@ -209,8 +212,8 @@ const PagoPage = () => {
           console.error('No se pudo limpiar sessionId tras pagar:', createErr);
         }
 
-      alert('Compra realizada');
-      navigate('/');
+      setNotification({ message: 'Compra realizada', type: 'success' });
+      setTimeout(() => navigate('/'), 800);
       } catch (err) {
       console.error('Error al finalizar compra:', err);
       // err puede ser Error lanzado arriba con mensaje ya serializado o un axios error
@@ -218,14 +221,14 @@ const PagoPage = () => {
       const resp = err?.response?.data;
       const serverMsg = err?.message || (resp ? JSON.stringify(resp) : (err?.toString ? err.toString() : ''));
       console.error('Status:', status, 'Response:', resp);
-      alert('No se pudo completar la compra' + (status ? ` (status ${status})` : '') + '\n' + serverMsg);
+      setNotification({ message: 'No se pudo completar la compra' + (status ? ` (status ${status})` : '') + '\n' + serverMsg, type: 'danger' });
     } finally {
       setSaving(false);
     }
   };
 
   const handleCreateCompra = async () => {
-    if (!authToken || !user) { alert('Debes iniciar sesión (auth)'); navigate('/login'); return; }
+    if (!authToken || !user) { setNotification({ message: 'Debes iniciar sesión (auth)', type: 'warning' }); navigate('/login'); return; }
     // Evitar que usuarios bloqueados creen compras de prueba
     // verificar estado más reciente en servidor
     try {
@@ -235,7 +238,7 @@ const PagoPage = () => {
         const ures = await axios.get(`${API_BASE}/user/${uid}`, { headers });
         const fresh = ures.data?.data ?? ures.data ?? null;
         if (fresh && (fresh.status === 'locked' || fresh.blocked)) {
-          alert('Usted no esta autorizado para comprar en este sitio');
+          setNotification({ message: 'Usted no esta autorizado para comprar en este sitio', type: 'danger' });
           return;
         }
       }
@@ -250,46 +253,41 @@ const PagoPage = () => {
       const model = res.data?.data ?? res.data ?? res;
       setCompraResult(model);
       try {
-        alert('POST /compra OK\n' + JSON.stringify(model, null, 2));
+        setNotification({ message: 'Compra creada OK. ID: ' + (model?.id || model?._id || '—'), type: 'success' });
       } catch (e) {
-        alert('POST /compra OK');
+        setNotification({ message: 'Compra creada OK', type: 'success' });
       }
     } catch (err) {
       console.error('Error POST /compra:', err?.response || err?.message || err);
       const serverMsg = err?.response?.data ? JSON.stringify(err.response.data) : (err?.message || String(err));
-      alert('Error en POST /compra - revisa consola\n' + serverMsg);
+      setNotification({ message: 'Error en POST /compra - revisa consola\n' + serverMsg, type: 'danger' });
     } finally {
       setCreatingCompra(false);
     }
   };
 
-  const handleCreateDetalles = async () => {
-    // El endpoint /detalle_venta fue removido en la base de datos.
-    // Ahora la tabla disponible es `envio`. Usa el botón "Crear envío" o "Pagar" para crear la compra y el envío.
-    alert('El endpoint /detalle_venta ya no existe. Usa "Crear envío" o "Pagar" para procesar la compra.');
-  };
-
   const handleCreateEnvio = async () => {
     const compraId = compraResult?.id;
     if (!compraId) {
-      alert('Primero crea una compra con POST /compra (usa el botón correspondiente)');
+      setNotification({ message: 'Primero crea una compra con POST /compra (usa el botón correspondiente)', type: 'warning' });
       return;
     }
     try {
       setCreatingEnvio(true);
       const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
-      const body = { compra: compraId, status: 'compra', user: getLoggedUserId() };
+      // Enviar solo id_compra; backend obtiene user desde el token y asigna status
+      const body = { id_compra: compraId };
       const res = await axios.post(`${API_BASE}/envio`, body, { headers });
       const model = res.data?.data ?? res.data ?? res;
       setEnvioResult(model);
       try {
-        alert('POST /envio OK\n' + JSON.stringify(model, null, 2));
+        setNotification({ message: 'Envío creado OK. ID: ' + (model?.id || model?._id || '—'), type: 'success' });
       } catch (e) {
-        alert('POST /envio OK');
+        setNotification({ message: 'Envío creado OK', type: 'success' });
       }
     } catch (err) {
       console.error('Error POST /envio:', err?.response || err?.message || err);
-      alert('Error en POST /envio - revisa consola');
+      setNotification({ message: 'Error en POST /envio - revisa consola', type: 'danger' });
     } finally {
       setCreatingEnvio(false);
     }
@@ -307,65 +305,79 @@ const PagoPage = () => {
 
   return (
     <div className="container mt-5 pt-5">
+      <Notification notification={notification} onClose={() => setNotification(null)} />
       <h3>Informacion del carrito</h3>
-      {sessionId && <div className="mb-2">Total unidades: <strong>{totalItems}</strong> — Productos distintos: <strong>{lines.length}</strong></div>}
-      {!sessionId && <p>No hay carrito activo. Crea uno primero desde Productos.</p>}
+      <div className="mb-2">Total unidades: <strong>{totalItems}</strong> — Productos distintos: <strong>{lines.length}</strong></div>
+      {lines.length === 0 && <p>El carrito está vacío.</p>}
 
-      {sessionId && (
+      
         <>
           {/* Estado del carrito: el backend no expone metadata `cart` en este proyecto */}
 
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Precio</th>
-                <th>Cantidad</th>
-                <th>Subtotal</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lines.map((l) => {
-                const prod = l.productData;
-                const price = prod?.price || l.price || 0;
-                const qty = Number(l.quantity) || 0;
-                return (
-                  <tr key={l.id}>
-                    <td>{prod?.name || `ID: ${l.product}`}</td>
-                    <td>{Math.round(price)}</td>
-                    <td>
-                      <div style={{ width: 80 }}>{qty}</div>
-                    </td>
-                    <td style={{ background: '#f8f9fa' }}>{Math.round(price * qty)}</td>
-                    <td>
-                      <button className="btn btn-sm btn-danger" onClick={() => removeLine(l.id)}>Eliminar</button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          <div className="d-flex justify-content-end align-items-center gap-3">
-            <div className="p-3 rounded" style={{ background: '#0d6efd', color: '#fff', fontWeight: 600 }}>
-              Total: {Math.round(total)}
+          <div className="row">
+            <div className="col-md-8">
+              <div className="table-responsive">
+                <table className="table table-hover">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '50%' }}>Producto</th>
+                      <th style={{ width: 110 }}>Precio</th>
+                      <th style={{ width: 120 }}>Cantidad</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lines.map((l) => {
+                      const prod = l.productData;
+                      const price = prod?.price || l.price || 0;
+                      const qty = Number(l.quantity) || 0;
+                      return (
+                        <tr key={l.id}>
+                          <td>
+                            <div style={{ maxWidth: 420, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {prod?.name || `ID: ${l.product}`}
+                            </div>
+                          </td>
+                          <td>{Math.round(price)}</td>
+                          <td>
+                            <div style={{ width: 80 }}>{qty}</div>
+                          </td>
+                          <td>
+                            <button className="btn btn-sm btn-outline-danger" onClick={() => removeLine(l.id)}>Eliminar</button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <div className="d-flex gap-2 align-items-center">
-              <button className="btn btn-outline-primary" onClick={handleCreateCompra} disabled={creatingCompra}>{creatingCompra ? 'Creando...' : 'Crear /compra'}</button>
-              <button className="btn btn-light" onClick={handleCreateEnvio}>{creatingEnvio ? 'Creando...' : 'Crear envío'}</button>
-              <button className="btn btn-success" disabled={saving} onClick={handlePagar}>{saving ? 'Procesando...' : 'Pagar'}</button>
+            <div className="col-md-4">
+              <div className="card shadow-sm p-3" style={{ position: 'sticky', top: 100 }}>
+                <h5 className="mb-3">Resumen</h5>
+                <div className="d-flex justify-content-between mb-2"><span>Productos</span><strong>{lines.length}</strong></div>
+                <div className="d-flex justify-content-between mb-3"><span>Total unidades</span><strong>{totalItems}</strong></div>
+                <div className="d-flex justify-content-between align-items-center mb-3" style={{ fontSize: 20 }}>
+                  <div>Total</div>
+                  <div className="badge bg-primary" style={{ fontSize: 16, padding: '10px 14px' }}>${Math.round(total)}</div>
+                </div>
+
+                <div className="d-grid gap-2">
+                  <button className="btn btn-success" onClick={handlePagar} disabled={saving || lines.length === 0}>{saving ? 'Procesando compra...' : 'Comprar'}</button>
+                </div>
+                <div className="mt-3 text-center">
+                  <Link to="/envios" className="btn btn-outline-secondary">Ver envíos</Link>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="mt-2">
             {compraResult && <small className="text-muted">Compra creada ID: {compraResult.id || compraResult._id || '—'}</small>}
-            {detallesResult && <div><small className="text-muted">Detalles creados: {Array.isArray(detallesResult) ? detallesResult.length : '—'}</small></div>}
             {/* envio table removed from backend; no envioResult shown */}
           </div>
         </>
-      )}
     </div>
   );
 };

@@ -115,13 +115,10 @@ const ProductCard = ({ product = {}, onClick }) => {
                     normalizedProductId = Number(normalizedProductId);
                   }
 
-                  // Preparar payload con snapshots para evitar problemas cuando el backend ejecute detalle_venta
+                  // Enviar solo lo necesario: id de producto y cantidad.
                   const payload = {
-                    product: normalizedProductId,
                     product_id: normalizedProductId,
-                    product_name: product?.name || product?.title || null,
-                    price: Number(product?.price ?? 0),
-                    quantity: Number(quantity)
+                    quantity: Number(quantity),
                   };
                   if (sessionId) payload.session_id = sessionId;
 
@@ -150,7 +147,15 @@ const ProductCard = ({ product = {}, onClick }) => {
                 }
               } catch (err) {
                 console.error('Error añadiendo al carrito (API):', err?.response || err.message || err);
-                alert('No se pudo añadir al carrito (error de servidor)');
+                // Intentar extraer JSON de la respuesta para mostrar al usuario
+                const respData = err?.response?.data;
+                let serverMsg = '';
+                try {
+                  serverMsg = respData ? (typeof respData === 'string' ? respData : JSON.stringify(respData, null, 2)) : (err?.message || String(err));
+                } catch (e) {
+                  serverMsg = String(respData || err?.message || err);
+                }
+                alert('No se pudo añadir al carrito (error de servidor)\n' + serverMsg);
               } finally {
                 setLoading(false);
               }
