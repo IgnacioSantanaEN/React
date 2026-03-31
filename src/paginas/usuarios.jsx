@@ -204,6 +204,7 @@ const UsuariosPage = () => {
                 <label className="form-label">Rol</label>
                 <select className="form-select" value={editForm.role} onChange={(e) => setEditForm(f => ({ ...f, role: e.target.value }))}>
                   <option value="cliente">Cliente</option>
+                  <option value="vendedor">Vendedor</option>
                   <option value="admin">Administrador</option>
                 </select>
               </div>

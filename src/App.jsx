@@ -24,7 +24,7 @@ function App() {
           <Route
             path="add"
             element={
-              <RoleRoute roles={['admin']}>
+              <RoleRoute roles={['admin','vendedor']}>
                 <AñadirProducto />
               </RoleRoute>
             }
@@ -33,7 +33,11 @@ function App() {
           <Route path="producto/:id" element={<Producto />} />
           <Route path="pago" element={<PagoPage />} />
           <Route path="envios" element={<EnviosPage />} />
-          <Route path="usuarios" element={<Usuarios />} />
+          <Route path="usuarios" element={
+            <RoleRoute roles={['admin']}>
+              <Usuarios />
+            </RoleRoute>
+          } />
         </Route>
       </Routes>
     </>

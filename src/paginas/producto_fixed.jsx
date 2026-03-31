@@ -113,7 +113,11 @@ const ProductPage = () => {
         <div className="col-md-6">
           {mainImage ? (
             <div className="product-image-wrapper" onClick={() => images.length > 0 && setMainIndex((mi) => (mi + 1) % images.length)} style={{ cursor: 'pointer' }}>
-              <img src={mainImage} alt={product.name} />
+              <img
+                src={mainImage}
+                alt={product.name}
+                style={{ maxHeight: '520px', width: 'auto', maxWidth: '100%', objectFit: 'contain', display: 'block', margin: '0 auto', padding: 8 }}
+              />
             </div>
           ) : (
             <div className="product-image-wrapper">Sin imagen</div>

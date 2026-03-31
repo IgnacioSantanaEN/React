@@ -43,11 +43,26 @@ export const AuthProvider = ({ children }) => {
   {/*Si usuario inicia sesion su authToken sera true*/}
   const isAuthenticated = !!authToken;
 
+  // Normalizar rol del usuario a uno de: 'admin', 'vendedor', 'cliente'
+  const getNormalizedRole = () => {
+    if (!user) return null;
+    const flagAdmin = Boolean(user?.isAdmin || user?.admin || user?.is_admin);
+    if (flagAdmin) return 'admin';
+    const rawRole = user?.role || user?.rol || user?.userRole || null;
+    if (!rawRole) return 'cliente';
+    return String(rawRole).toLowerCase();
+  };
+
   {/*Verifica si el usuario tiene alguno de los roles especificados*/}
-  const hasRole = (...roles) => (user ? roles.includes(user.role) : false);
+  const hasRole = (...roles) => {
+    const normalized = getNormalizedRole();
+    if (!normalized) return false;
+    const wanted = roles.map(r => String(r).toLowerCase());
+    return wanted.includes(normalized);
+  };
 
   {/*Verifica si el usuario es admin*/}
-  const isAdmin = user?.role === "admin";
+  const isAdmin = getNormalizedRole() === 'admin';
 
   {/*Proveer el contexto de autenticación a los componentes hijos*/}
   return (

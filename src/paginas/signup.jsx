@@ -8,7 +8,7 @@ const Signup = () => {
     name: "",
     email: "",
     password: "",
-    role: "",
+      role: "cliente",
     status: 'unlocked',
   });
   const [success, setSuccess] = useState(false);
@@ -111,27 +111,29 @@ const Signup = () => {
             required 
         />
 
-        <label htmlFor="role" className="form-label">
-          Rol
-        </label>
-        <select
-          id="role"
-          name="role"
-          className="form-select mb-5"
-          value={formData.role}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Selecciona un rol</option>
-          <option value="cliente">Cliente</option>
-          {isAdmin && <option value="admin">Administrador</option>}
-        </select>
+        {/* Mostrar selector solo si quien crea es admin */}
+        {isAdmin ? (
+          <>
+            <label htmlFor="role" className="form-label">Rol</label>
+            <select id="role" name="role" className="form-select mb-5" value={formData.role} onChange={handleChange}>
+              <option value="cliente">Cliente</option>
+              <option value="vendedor">Vendedor</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </>
+        ) : (
+          // Si no es admin, mantener rol cliente oculto
+          <input type="hidden" name="role" value="cliente" />
+        )}
 
           {/* El campo 'status' se envía siempre como 'unlocked' y no se muestra al usuario */}
 
         <button type="submit" className="btn btn-success w-100 mb-5 pt-2">
           Registrarse
         </button>
+        <div className="text-center mb-3">
+          <p className="mb-0">¿Tiene una cuenta? <a href="/login" style={{ textDecoration: 'underline' }}>Inicie Sesión Aquí</a></p>
+        </div>
         </form>
     </div>
   )

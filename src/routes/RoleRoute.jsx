@@ -14,13 +14,14 @@ const RoleRoute = ({ roles = [], children }) => {
   // Si no se piden roles, permitir acceso
   if (!roles || roles.length === 0) return children;
 
-  // Normalizar rol: solo existen 'admin' y 'cliente' en el sistema
+  // Normalizar rol: admitir 'admin', 'vendedor' y 'cliente'
   const isAdminFlag = Boolean(user?.isAdmin || user?.admin || user?.is_admin);
   const rawRole = user?.role || user?.rol || user?.userRole || null;
   const normalizedRole = isAdminFlag ? 'admin' : (rawRole ? String(rawRole).toLowerCase() : 'cliente');
 
   // Permitir si el rol normalizado está dentro de los roles requeridos
-  if (roles.includes(normalizedRole)) return children;
+  const wanted = roles.map(r => String(r).toLowerCase());
+  if (wanted.includes(normalizedRole)) return children;
 
   // Denegado → a home
   return <Navigate to="/" replace />;
