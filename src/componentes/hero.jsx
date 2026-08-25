@@ -11,7 +11,7 @@ const Hero = () => {
             Bienvenido a <span className="text-primary">The Holiday Shop</span>
           </h1>
           <p className="text-muted lead">
-            Encuentra los mejores productos para cada festividad: Navidad, Halloween, Pascua y más.
+            Encuentra y realiza tus pedidos en linea con Delivery barato en Maipú.
           </p>
           <Link to="/login" className="btn btn-primary btn-lg mt-3">
             Iniciar Sesión

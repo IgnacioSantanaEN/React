@@ -5,13 +5,13 @@ const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
 import { useAuth } from '../context/AuthContext';
 
 // Componente tarjeta de producto
-// Props: { product, onClick } - product debe tener al menos { name, price, description, stock_quantity, images }
+// Props: { product, onClick } - product debe tener al menos { name, price, description, is_available, images }
 const ProductCard = ({ product = {}, onClick }) => {
   const images = Array.isArray(product.images) ? product.images : [];
   const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const quantity = 1; // ahora usamos cantidad fija 1 (el JSON de producto ya no trae `quantity`)
 
   // Simplified image resolver: images are either strings (URLs) or objects with a `url` field.
   const getUrl = (img) => {
@@ -30,8 +30,8 @@ const ProductCard = ({ product = {}, onClick }) => {
   const mainImage = visibleImages[imgIndex] || visibleImages[0] || null;
 
   return (
-    <div className="card" style={{ width: '100%', maxWidth: 420 }}>
-      <div style={{ position: 'relative', height: 260, background: '#f8f9fa' }}>
+    <div className="card" style={{ width: '|00%', maxWidth: 320 }}>
+      <div style={{ position: 'relative', height: 220, background: '#f8f9fa88' }}>
         {mainImage ? (
           <img
             src={mainImage}
@@ -40,7 +40,15 @@ const ProductCard = ({ product = {}, onClick }) => {
               if (visibleImages.length <= 1) return;
               setImgIndex((i) => (i + 1) % visibleImages.length);
             }}
-            style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block', cursor: visibleImages.length > 1 ? 'pointer' : 'default' }}
+            style={{
+              width: 'auto',
+              maxWidth: '80%',
+              height: '180px',
+              objectFit: 'contain',
+              display: 'block',
+              margin: '20px auto',
+              cursor: visibleImages.length > 1 ? 'pointer' : 'default'
+            }}
           />
         ) : (
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6c757d' }}>
@@ -55,6 +63,12 @@ const ProductCard = ({ product = {}, onClick }) => {
             <h5 className="card-title mb-1" style={{ fontSize: 16 }}>{product.name || 'Sin nombre'}</h5>
             {product.price != null && (
               <div className="text-muted" style={{ fontSize: 14 }}>${product.price}</div>
+            )}
+            {/* Mostrar estado de stock usando `is_available` */}
+            {product.is_available != null && (
+              <div style={{ fontSize: 14, marginTop: 6 }} className={product.is_available ? 'text-success' : 'text-danger'}>
+                {product.is_available ? 'Hay Stock' : 'No hay Stock'}
+              </div>
             )}
           </div>
 
@@ -72,25 +86,6 @@ const ProductCard = ({ product = {}, onClick }) => {
       </div>
 
       <div className="card-footer d-flex align-items-center gap-2">
-        <div className="d-flex align-items-center">
-          <label htmlFor={`qty-${product.id || product._id || ''}`} className="me-2 mb-0">Cantidad</label>
-          <input
-            id={`qty-${product.id || product._id || ''}`}
-            type="number"
-            min={1}
-            max={product?.stock_quantity ?? 9999}
-            value={quantity}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              if (Number.isNaN(v) || v < 1) return setQuantity(1);
-              const max = product?.stock_quantity ?? 9999;
-              setQuantity(v > max ? max : v);
-            }}
-            className="form-control form-control-sm"
-            style={{ width: 80 }}
-          />
-        </div>
-
         <div className="ms-auto">
           <button
             className="btn btn-sm btn-primary"
@@ -125,7 +120,7 @@ const ProductCard = ({ product = {}, onClick }) => {
                     normalizedProductId = Number(normalizedProductId);
                   }
 
-                  // Enviar solo lo necesario: id de producto y cantidad.
+                  // Enviar solo lo necesario: id de producto y cantidad (1 por defecto).
                   const payload = {
                     product_id: normalizedProductId,
                     quantity: Number(quantity),
