@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
+const API_BASE = import.meta.env.VITE_XANO_BASE;
 import { useAuth } from '../context/AuthContext';
 
 // Componente tarjeta de producto
@@ -63,6 +63,9 @@ const ProductCard = ({ product = {}, onClick }) => {
             <h5 className="card-title mb-1" style={{ fontSize: 16 }}>{product.name || 'Sin nombre'}</h5>
             {product.price != null && (
               <div className="text-muted" style={{ fontSize: 14 }}>${product.price}</div>
+            )}
+            {product.stock != null && (
+              <div className="text-muted" style={{ fontSize: 14 }}>Stock: {product.stock}</div>
             )}
             {/* Mostrar estado de stock usando `is_available` */}
             {product.is_available != null && (

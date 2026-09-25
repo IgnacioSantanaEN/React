@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Notification from '../componentes/Notification';
 
-const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
+const API_BASE = import.meta.env.VITE_XANO_BASE;
 
 const PagoPage = () => {
   const navigate = useNavigate();

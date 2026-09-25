@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 
-const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
+const API_BASE = import.meta.env.VITE_XANO_BASE;
 
 const UsuariosPage = () => {
   // Helpers

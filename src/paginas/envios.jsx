@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 // Sin autenticación en esta página (GET público y acciones mostradas siempre)
 
-const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
+const API_BASE = import.meta.env.VITE_XANO_BASE;
 
 const EnviosPage = () => {
   // No se requiere auth en el frontend para esta página según indicación

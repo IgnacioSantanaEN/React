@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getProductById, deleteProduct } from '../api/product';
 import { useAuth } from '../context/AuthContext';
 import Notification from '../componentes/Notification';
 
-const API_BASE = 'https://x8ki-letl-twmt.n7.xano.io/api:ua2_1To9';
+const API_BASE = import.meta.env.VITE_XANO_BASE;
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -22,8 +23,8 @@ const ProductPage = () => {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    axios.get(`${API_BASE}/product/${id}`)
-      .then((res) => setProduct(res.data || null))
+    getProductById(id)
+      .then((data) => setProduct(data || null))
       .catch((err) => { console.error(err); setError('No se pudo cargar el producto'); })
       .finally(() => setLoading(false));
   }, [id]);
@@ -63,7 +64,7 @@ const ProductPage = () => {
     if (!window.confirm(`¿Eliminar producto ${product?.name || productId}?`)) return;
     setBusy(true);
     try {
-      await axios.delete(`${API_BASE}/product/${productId}`);
+      await deleteProduct(productId);
       setNotification({ message: 'Producto eliminado', type: 'success' });
       navigate('/productos');
     } catch (err) {
@@ -100,6 +101,7 @@ const ProductPage = () => {
 
             <div className="d-flex gap-2">
               <div className="bg-white p-3 rounded shadow-sm w-100"><label className="form-label mb-1" style={{ fontSize: 12, color: '#6c757d' }}>Precio</label><div style={{ fontWeight: 600 }}>${product.price ?? 0}</div></div>
+              <div className="bg-white p-3 rounded shadow-sm w-100"><label className="form-label mb-1" style={{ fontSize: 12, color: '#6c757d' }}>Cantidad de stock</label><div style={{ fontWeight: 600 }}>{product.stock ?? 0}</div></div>
             </div>
 
             <div className="mt-3">
